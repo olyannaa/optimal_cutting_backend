@@ -8,10 +8,10 @@ namespace vega.Migrations.DAL
         [Column("user_id")]
         public int Id { get; set; }
         [Column("login")]
-        public string Login { get; set; }
+        public string Login { get; set; } = null!;
         [Column("full_name")]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = null!;
         [Column("password")]
-        public string Password { get; set; }
+        public string Password { get; set; } = null!;
     }
 }

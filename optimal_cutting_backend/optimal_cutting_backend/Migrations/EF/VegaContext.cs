@@ -9,7 +9,7 @@ namespace vega.Migrations.EF
     public class VegaContext : DbContext
     {
         
-        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<User> Users { get; set; } = null!;
 
         public VegaContext(DbContextOptions<VegaContext> options)
             : base(options)
