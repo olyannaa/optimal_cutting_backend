@@ -5,25 +5,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <DocumentationFile>C:\Users\user\OneDrive\Desktop\Reactor\optimal_cutting_backend\optimal_cutting_backend\vega.xml</DocumentationFile>
+    <DocumentationFile>vega.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="vega.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="vega.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <DocFileItem Remove="vega.xml" />
   </ItemGroup>
 
 </Project>
