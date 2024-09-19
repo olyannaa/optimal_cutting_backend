@@ -4,6 +4,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <DocumentationFile>C:\Users\user\OneDrive\Desktop\Reactor\optimal_cutting_backend\optimal_cutting_backend\vega.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +15,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <None Remove="vega.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="vega.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DocFileItem Remove="vega.xml" />
   </ItemGroup>
 
 </Project>
