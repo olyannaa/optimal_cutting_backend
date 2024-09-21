@@ -5,6 +5,7 @@ namespace vega.Services
     public interface ITokenManagerService
     {
         string GetAccessToken(ClaimsIdentity identity);
-        string DestroyToken();
+        void DestroySessionToken();
+        bool IsTokenValid();
     }
 }

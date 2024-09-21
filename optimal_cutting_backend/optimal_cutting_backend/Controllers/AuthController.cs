@@ -1,13 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Net.WebSockets;
+using Microsoft.Extensions.Caching.Distributed;
 using System.Security.Claims;
 using System.Security.Principal;
-using System.Text;
 using vega.Controllers.DTO;
 using vega.Migrations.EF;
 using vega.Services;
@@ -21,7 +17,8 @@ namespace vega.Controllers
         private readonly IHttpContextAccessor _context;
         private readonly VegaContext _db;
 
-        public AuthController(ILogger<AuthController> logger, ITokenManagerService tokenManager, IHttpContextAccessor httpContext, VegaContext dbContext)
+        public AuthController(ILogger<AuthController> logger,
+            ITokenManagerService tokenManager, IHttpContextAccessor httpContext, VegaContext dbContext)
         {
             _logger = logger;
             _tokenManager = tokenManager;
@@ -33,10 +30,20 @@ namespace vega.Controllers
         [Route("/token")]
         public dynamic GetToken([FromForm] AuthDto dto)
         {
+            //ToDo: Реализовать валидацию пользователя
             var identity = new ClaimsIdentity(new GenericIdentity(dto.Login));
             var access = _tokenManager.GetAccessToken(identity);
 
             return access;
+        }
+
+        [HttpDelete]
+        [Route("/token")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public dynamic DestroySessionToken()
+        {
+            _tokenManager.DestroySessionToken();
+            return Ok();   
         }
 
         [HttpGet]
@@ -47,5 +54,7 @@ namespace vega.Controllers
             var currentUser = _context?.HttpContext?.User;
             return currentUser.Identity.Name;
         }
+
+
     }
 }

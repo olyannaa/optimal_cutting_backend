@@ -21,6 +21,11 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
+builder.Services.AddStackExchangeRedisCache(options => {
+    options.Configuration = "localhost"; // хост сервера кэширования ip:port
+    options.InstanceName = "local"; // имя экземпляра Redis
+});
+
 builder.Services.AddAuthorization();
 
 var authOptions = builder.Configuration.GetSection("AuthOptions");
@@ -37,9 +42,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions["Key"])),
             ValidateIssuerSigningKey = true
          };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = (TokenValidatedContext context) =>
+            {
+                var tokenManager = context.HttpContext.RequestServices.GetService<ITokenManagerService>();
+                if (!tokenManager.IsTokenValid())
+                {
+                    context.Fail("Failed additional validation");
+                }
+
+                return Task.CompletedTask;
+            }
+        };
 });
 
-builder.Services.AddSingleton<ITokenManagerService, TokenManagerService>();
+builder.Services.AddScoped<ITokenManagerService, TokenManagerService>();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 var app = builder.Build();
