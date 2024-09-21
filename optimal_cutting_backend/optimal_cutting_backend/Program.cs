@@ -22,18 +22,19 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddAuthorization();
+
+var authOptions = builder.Configuration.GetSection("AuthOptions");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = "Test",
+            ValidIssuer = authOptions["Issuer"],
             ValidateAudience = true,
-            ValidAudience = "Test",
+            ValidAudience = authOptions["Audience"],
             ValidateLifetime = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("TestTestTestTestTestTestTestTestTestTestTestTestTest" +
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest")),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions["Key"])),
             ValidateIssuerSigningKey = true
          };
 });

@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Text;
+using vega.Controllers.DTO;
 using vega.Migrations.EF;
 using vega.Services;
 
@@ -27,24 +29,14 @@ namespace vega.Controllers
             _db = dbContext;
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("/token")]
-        public dynamic GetToken()
+        public dynamic GetToken([FromForm] AuthDto dto)
         {
-            var handler = new JwtSecurityTokenHandler();
+            var identity = new ClaimsIdentity(new GenericIdentity(dto.Login));
+            var access = _tokenManager.GetAccessToken(identity);
 
-            var sec = "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest";
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(sec));
-            var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
-
-            var claims = new[] { new Claim("user_id", "57dc51a3389b30fed1b13f91") };
-            var token = new JwtSecurityToken(
-                claims: claims,
-                signingCredentials: signingCredentials,
-                audience: "Test",
-                issuer: "Test",
-                expires: DateTime.UtcNow.AddMinutes(30));
-            return handler.WriteToken(token);
+            return access;
         }
 
         [HttpGet]
@@ -52,7 +44,7 @@ namespace vega.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public dynamic Index()
         {
-            var currentUser = _context.HttpContext.User;
+            var currentUser = _context?.HttpContext?.User;
             return currentUser.Identity.Name;
         }
     }
