@@ -14,6 +14,7 @@ using vega.Services;
 
 namespace vega.Controllers
 {
+    [Route("/[controller]")]
     public class AuthController : Controller
     {
         private readonly ILogger<AuthController> _logger;
@@ -40,7 +41,7 @@ namespace vega.Controllers
         }
 
         [HttpGet]
-        [Route("/auth")]
+        [Route("/user")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public dynamic Index()
         {
