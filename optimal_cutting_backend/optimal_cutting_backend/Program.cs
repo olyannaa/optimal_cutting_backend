@@ -32,12 +32,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = "Test",
             ValidateLifetime = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Test")),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("TestTestTestTestTestTestTestTestTestTestTestTestTest" +
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest")),
             ValidateIssuerSigningKey = true
          };
 });
 
 builder.Services.AddSingleton<ITokenManagerService, TokenManagerService>();
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 var app = builder.Build();
 
