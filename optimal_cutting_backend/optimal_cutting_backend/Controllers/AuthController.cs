@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +10,8 @@ using System.Security.Principal;
 using System.Text;
 using vega.Controllers.DTO;
 using vega.Migrations.EF;
+using Npgsql;
+using System.Security.Cryptography;
 using vega.Services;
 
 namespace vega.Controllers
@@ -47,6 +49,34 @@ namespace vega.Controllers
         {
             var currentUser = _context?.HttpContext?.User;
             return currentUser.Identity.Name;
+        }
+
+        [HttpPost]
+        [Route("/user/validPassword")]
+        public IActionResult ValidPassword(string login, string password)
+        {
+            var user = _db.Users.FirstOrDefault(x => x.Login == login);
+            if (user == null) return BadRequest("user is not found");
+            var encryptePassword = CalculateSHA256(password);
+            if (encryptePassword == user.Password) return Ok(true);
+            return Ok(false);
+
+        }
+        public string CalculateSHA256(string input)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+                byte[] hashBytes = sha256.ComputeHash(inputBytes);
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < hashBytes.Length; i++)
+                {
+                    sb.Append(hashBytes[i].ToString("x2"));
+                }
+
+                return sb.ToString();
+            }
         }
     }
 }
