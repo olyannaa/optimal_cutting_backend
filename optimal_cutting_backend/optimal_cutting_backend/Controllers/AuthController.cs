@@ -28,6 +28,12 @@ namespace vega.Controllers
             _db = dbContext;
         }
 
+        /// <summary>
+        /// Authorizes user in system.
+        /// </summary>
+        /// <returns>Returns JWT</returns>
+        /// <response code="200">Returns JWT access</response>
+        /// <response code="400">If user is not registered in system or password is wrong</response>
         [HttpPost]
         [Route("/token")]
         public IActionResult GetToken([FromForm] AuthDto dto)
@@ -44,13 +50,19 @@ namespace vega.Controllers
             return Ok(access);
         }
 
+        /// <summary>
+        /// Retrieves logged in user information.
+        /// </summary>
+        /// <returns>User name</returns>
+        /// <response code="200">Returns user info</response>
+        /// <response code="401">Not authorized</response>
         [HttpGet]
         [Route("/user")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public dynamic Index()
+        public IActionResult Index()
         {
             var currentUser = _context?.HttpContext?.User;
-            return currentUser.Identity.Name;
+            return Ok(currentUser.Identity.Name);
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
