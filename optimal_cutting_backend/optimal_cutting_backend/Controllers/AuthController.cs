@@ -62,6 +62,7 @@ namespace vega.Controllers
             return Ok(false);
 
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
         public string CalculateSHA256(string input)
         {
             using (SHA256 sha256 = SHA256.Create())
