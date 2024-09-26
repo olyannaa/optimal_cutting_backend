@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic.FileIO;
 using System.Globalization;
+using System.Xml.Linq;
 using vega.Controllers.DTO;
 using vega.Services;
 
@@ -25,6 +26,14 @@ namespace vega.Controllers
             if (!IsFileExtensionAllowed(file, new string[] { ".csv" })) return BadRequest("Invalid file type. Please upload a CSV file.");
             var details = _csvService.ReadCSV<DetailOneDivisionDTO>(file.OpenReadStream());
             return Ok(details);
+        }
+
+        [HttpPost]
+        [Route("/export/1d")]
+        public async Task<ActionResult> ExportCsv([FromBody] List<DetailOneDivisionDTO> dto)
+        {
+            var file = _csvService.WriteCSV(dto);
+            return File(file, "application/octet-stream", "export.csv");
         }
 
         //check file type
