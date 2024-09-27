@@ -19,7 +19,7 @@ namespace vega.Controllers
         }
 
         [HttpPost]
-        [Route("/import/1d")]
+        [Route("/1d/import")]
         public async Task<ActionResult> ImportCsv(IFormFile file)
         {
             if (file == null) return BadRequest("file is null");
@@ -29,9 +29,10 @@ namespace vega.Controllers
         }
 
         [HttpPost]
-        [Route("/export/1d")]
+        [Route("/1d/export")]
         public async Task<ActionResult> ExportCsv([FromBody] List<DetailOneDivisionDTO> dto)
         {
+            if (dto.Count == 0) return BadRequest("details is null");
             var file = _csvService.WriteCSV(dto);
             return File(file, "application/octet-stream", "export.csv");
         }
