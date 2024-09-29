@@ -4,5 +4,21 @@
         <name>vega</name>
     </assembly>
     <members>
+        <member name="M:vega.Controllers.AuthController.GetToken(vega.Controllers.DTO.AuthDto)">
+            <summary>
+            Authorizes user in system.
+            </summary>
+            <returns>Returns JWT</returns>
+            <response code="200">Returns JWT access</response>
+            <response code="400">If user is not registered in system or password is wrong</response>
+        </member>
+        <member name="M:vega.Controllers.AuthController.Index">
+            <summary>
+            Retrieves logged in user information.
+            </summary>
+            <returns>User name</returns>
+            <response code="200">Returns user info</response>
+            <response code="401">Not authorized</response>
+        </member>
     </members>
 </doc>

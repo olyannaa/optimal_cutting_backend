@@ -1,10 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Text;
@@ -32,36 +28,44 @@ namespace vega.Controllers
             _db = dbContext;
         }
 
+        /// <summary>
+        /// Authorizes user in system.
+        /// </summary>
+        /// <returns>Returns JWT</returns>
+        /// <response code="200">Returns JWT access</response>
+        /// <response code="400">If user is not registered in system or password is wrong</response>
         [HttpPost]
-        [Route("/token")]
-        public dynamic GetToken([FromForm] AuthDto dto)
+        [Route("/login")]
+        public IActionResult GetToken([FromForm] AuthDto dto)
         {
-            var identity = new ClaimsIdentity(new GenericIdentity(dto.Login));
+            var user = _db.Users.FirstOrDefault(x => x.Login == dto.Login);
+            if (user == null) return BadRequest("user is not found");
+
+            var encryptePassword = CalculateSHA256(dto.Password);
+            if (encryptePassword != user.Password) return BadRequest("wrong password");
+
+            var identity = new ClaimsIdentity(new GenericIdentity(user.FullName));
             var access = _tokenManager.GetAccessToken(identity);
 
-            return access;
+            return Ok(access);
         }
 
+        /// <summary>
+        /// Retrieves logged in user information.
+        /// </summary>
+        /// <returns>User name</returns>
+        /// <response code="200">Returns user info</response>
+        /// <response code="401">Not authorized</response>
         [HttpGet]
         [Route("/user")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public dynamic Index()
+        public IActionResult Index()
         {
             var currentUser = _context?.HttpContext?.User;
-            return currentUser.Identity.Name;
+            return Ok(currentUser.Identity.Name);
         }
 
-        [HttpPost]
-        [Route("/user/validPassword")]
-        public IActionResult ValidPassword(string login, string password)
-        {
-            var user = _db.Users.FirstOrDefault(x => x.Login == login);
-            if (user == null) return BadRequest("user is not found");
-            var encryptePassword = CalculateSHA256(password);
-            if (encryptePassword == user.Password) return Ok(true);
-            return Ok(false);
-
-        }
+        [ApiExplorerSettings(IgnoreApi = true)]
         public string CalculateSHA256(string input)
         {
             using (SHA256 sha256 = SHA256.Create())
