@@ -35,7 +35,7 @@ namespace vega.Controllers
         /// <response code="200">Returns JWT access</response>
         /// <response code="400">If user is not registered in system or password is wrong</response>
         [HttpPost]
-        [Route("/token")]
+        [Route("/login")]
         public IActionResult GetToken([FromForm] AuthDto dto)
         {
             var user = _db.Users.FirstOrDefault(x => x.Login == dto.Login);
