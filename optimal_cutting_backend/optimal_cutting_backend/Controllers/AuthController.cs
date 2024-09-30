@@ -12,7 +12,7 @@ using vega.Controllers.DTO;
 using vega.Migrations.EF;
 using Npgsql;
 using System.Security.Cryptography;
-using vega.Services;
+using vega.Services.Interfaces;
 
 namespace vega.Controllers
 {

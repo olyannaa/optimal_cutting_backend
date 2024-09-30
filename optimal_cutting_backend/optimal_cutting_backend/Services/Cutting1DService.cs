@@ -1,4 +1,5 @@
 ﻿using vega.Models;
+using vega.Services.Interfaces;
 
 namespace vega.Services
 {
@@ -8,6 +9,7 @@ namespace vega.Services
         {
             if (details.Max(x => x) > workpieces.Max(y => y))
                 throw new Exception("detail length > workpiece length");
+
             details = details.OrderBy(x => -x).ToList();
             var cuts = new List<List<int>>();
             for(var i = 0; i < workpieces.Count; i++)
@@ -30,6 +32,10 @@ namespace vega.Services
                 cuts.Add(cut);
             }
 
+            return CreateResultModel(cuts, workpieces);
+        }
+        private Cutting1DResult CreateResultModel(List<List<int>> cuts, List<int> workpieces)
+        {
             var result = new Cutting1DResult();
             for (var i = 0; i < workpieces.Count; i++)
             {
@@ -45,7 +51,6 @@ namespace vega.Services
                                             / (result.Workpieces.Count), 2);
 
             return result;
-
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
+using vega.Services.Interfaces;
 
 namespace vega.Services
 {

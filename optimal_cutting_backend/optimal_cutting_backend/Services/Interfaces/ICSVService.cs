@@ -1,4 +1,4 @@
-﻿namespace vega.Services
+﻿namespace vega.Services.Interfaces
 {
     public interface ICSVService
     {

@@ -1,6 +1,6 @@
 ﻿using vega.Models;
 
-namespace vega.Services
+namespace vega.Services.Interfaces
 {
     public interface ICutting1DService
     {

@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using vega.Migrations.EF;
 using vega.Services;
+using vega.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,7 @@ builder.Services.AddSingleton<ITokenManagerService, TokenManagerService>();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddScoped<ICSVService, CSVService>();
 builder.Services.AddScoped<ICutting1DService, Cutting1DService>();
+builder.Services.AddScoped<IDrawService, DrawService>();
 
 var app = builder.Build();
 

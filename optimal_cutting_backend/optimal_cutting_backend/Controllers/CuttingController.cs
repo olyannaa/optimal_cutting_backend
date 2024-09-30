@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using vega.Controllers.DTO;
-using vega.Services;
 using vega.Models;
+using vega.Services.Interfaces;
+
 namespace vega.Controllers
 {
     public class CuttingController : Controller
