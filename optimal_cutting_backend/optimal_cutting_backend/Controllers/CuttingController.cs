@@ -15,7 +15,7 @@ namespace vega.Controllers
 
         [HttpPost]
         [Route("1d/calculate")]
-        public async Task<ActionResult> Calculate1DCutting([FromBody] Calculate1DDTO dto)
+        public ActionResult Calculate1DCutting([FromBody] Calculate1DDTO dto)
         {
             var res = _cutting1DService.CalculateCutting(dto.Details, dto.Workpieces);
             return Ok(res);
