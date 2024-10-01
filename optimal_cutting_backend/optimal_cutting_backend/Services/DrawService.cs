@@ -55,8 +55,8 @@ namespace vega.Services
         //public byte[] Draw1DCuttingX(Cutting1DResult result)
         //{
         //    var lineHeight = 100;
-        //    var bitmap = new Bitmap(result.Workpieces.Max(w => w.Length),
-        //        result.Workpieces.Count * lineHeight + 20);
+        //    var bitmap = new Bitmap(result.WorkpieceLength.Max(w => w.Length),
+        //        result.WorkpieceLength.Count * lineHeight + 20);
         //    var graphics = Graphics.FromImage(bitmap);
         //    var x = 0;
         //    var y = 10;
@@ -66,7 +66,7 @@ namespace vega.Services
         //    var font = new Font("Arial", 12, FontStyle.Italic);
         //    var blackPen = new Pen(Color.Black);
 
-        //    foreach (var workpiece in result.Workpieces)
+        //    foreach (var workpiece in result.WorkpieceLength)
         //    {
         //        foreach(var detailWidth in workpiece.Details)
         //        {

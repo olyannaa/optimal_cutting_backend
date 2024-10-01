@@ -17,7 +17,7 @@ namespace vega.Controllers
         [Route("1d/calculate")]
         public ActionResult Calculate1DCutting([FromBody] Calculate1DDTO dto)
         {
-            var res = _cutting1DService.CalculateCutting(dto.Details, dto.Workpieces);
+            var res = _cutting1DService.CalculateCutting(dto.Details, dto.WorkpieceLength);
             return Ok(res);
         }
     }

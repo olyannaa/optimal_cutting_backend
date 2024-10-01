@@ -5,14 +5,14 @@ namespace vega.Services
 {
     public class Cutting1DService : ICutting1DService
     {
-        public Cutting1DResult CalculateCutting(List<int> details, List<int> workpieces)
+        public Cutting1DResult CalculateCutting(List<int> details, int workpiece)
         {
-            if (details.Max(x => x) > workpieces.Max(y => y))
+            if (details.Max(x => x) > workpiece)
                 throw new Exception("detail length > workpiece length");
 
             details = details.OrderBy(x => -x).ToList();
             var cuts = new List<List<int>>();
-            for(var i = 0; i < workpieces.Count; i++)
+            while(true)
             {
                 var cut = new List<int>();
                 var summ = 0;
@@ -20,7 +20,7 @@ namespace vega.Services
                 var j = 0;
                 while (j < details.Count)
                 {
-                    if (summ + details[j] <= workpieces[i])
+                    if (summ + details[j] <= workpiece)
                     {
                         cut.Add(details[j]);
                         summ += details[j];
@@ -32,26 +32,17 @@ namespace vega.Services
                 cuts.Add(cut);
             }
 
-            return CreateResultModel(cuts, workpieces);
+            return CreateResultModel(cuts, workpiece);
         }
-        private Cutting1DResult CreateResultModel(List<List<int>> cuts, List<int> workpieces)
+        private Cutting1DResult CreateResultModel(List<List<int>> cuts, int workpieceLength)
         {
             var result = new Cutting1DResult();
-            for (var i = 0; i < workpieces.Count; i++)
+            for (var i = 0; i < cuts.Count; i++)
             {
                 var workpiece = new Workpiece();
-                workpiece.Length = workpieces[i];
-                if (i >= cuts.Count)
-                {
-                    
-                    workpiece.Details = new List<int> { 0 };
-                    workpiece.PercentUsage = 0;
-                }
-                else
-                {
-                    workpiece.Details = cuts[i];
-                    workpiece.PercentUsage = Math.Round((double)cuts[i].Sum(c => c) / workpieces[i], 2);
-                }
+                workpiece.Length = workpieceLength;
+                workpiece.Details = cuts[i];
+                workpiece.PercentUsage = Math.Round((double)cuts[i].Sum(c => c) / workpieceLength, 2);
                 result.Workpieces.Add(workpiece);
             }
             result.TotalPercentUsage = Math.Round((double)result.Workpieces.Sum(w => w.PercentUsage)
