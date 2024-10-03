@@ -36,8 +36,13 @@
             <summary>
             draw png scheme 1d cutting caltulating
             </summary>
-            <param name="length">sdfsdf</param>
-            <returns></returns>
+            <returns>png scheme cutting</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportPdf(vega.Models.Cutting1DResult)">
+            <summary>
+            download pdf scheme 1d cutting caltulating
+            </summary>
+            <returns>pdf file</returns>
         </member>
     </members>
 </doc>

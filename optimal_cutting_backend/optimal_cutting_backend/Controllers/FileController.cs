@@ -1,4 +1,6 @@
 ﻿using CsvHelper;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic.FileIO;
 using System.Globalization;
@@ -52,6 +54,7 @@ namespace vega.Controllers
             var file = _csvService.WriteCSV(dto);
             return File(file, "application/octet-stream", "export.csv");
         }
+
         /// <summary>
         /// draw png scheme 1d cutting caltulating
         /// </summary>
@@ -62,6 +65,30 @@ namespace vega.Controllers
         {
             var imageBytes = _drawService.Draw1DCutting(dto);
             return File(imageBytes, "image/png");
+        }
+
+        /// <summary>
+        /// download pdf scheme 1d cutting caltulating
+        /// </summary>
+        /// <returns>pdf file</returns>
+        [HttpPost]
+        [Route("/1d/export/pdf")]
+        public async Task<IActionResult> ExportPdf([FromBody] Cutting1DResult dto)
+        {
+            var imageBytes = _drawService.Draw1DCutting(dto);
+            var ms = new MemoryStream();
+            var document = new Document();
+            PdfWriter.GetInstance(document, ms);
+            document.Open();
+            var image = Image.GetInstance(imageBytes);
+            var table = new PdfPTable(1);
+            table.AddCell(image);
+            document.Add(table);
+            document.Close();
+
+
+            byte[] pdfData = ms.ToArray();
+            return File(pdfData, "application/octet-stream", "export.pdf");
         }
 
         //check file type
