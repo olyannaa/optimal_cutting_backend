@@ -20,28 +20,44 @@ namespace vega.Controllers
             _csvService = csvService;
             _drawService = drawService;
         }
-
+        /// <summary>
+        /// import csv file and formating him in json
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns>JSON file with details length and count</returns>
+        /// <response code="200">Formatting is ok</response>
+        /// <response code="400">Input file is null</response>
+        /// <response code="401"> Invalid file type. Please upload a CSV file</response>
         [HttpPost]
-        [Route("/1d/importCsv")]
+        [Route("/1d/import/csv")]
         public async Task<ActionResult> ImportCsv(IFormFile file)
         {
-            if (file == null) return BadRequest("file is null");
-            if (!IsFileExtensionAllowed(file, new string[] { ".csv" })) return BadRequest("Invalid file type. Please upload a CSV file.");
+            if (file == null) return StatusCode(400);
+            if (!IsFileExtensionAllowed(file, new string[] { ".csv" })) return StatusCode(401);
             var details = _csvService.ReadCSV<DetailOneDivisionDTO>(file.OpenReadStream());
             return Ok(details);
         }
-
+        /// <summary>
+        /// formating json to csv and export csv file
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns>JSON file with details length and count</returns>
+        /// <response code="200">Export is ok</response>
+        /// <response code="400">Details count = 0</response>
         [HttpPost]
-        [Route("/1d/exportCsv")]
+        [Route("/1d/export/csv")]
         public async Task<ActionResult> ExportCsv([FromBody] List<DetailOneDivisionDTO> dto)
         {
             if (dto.Count == 0) return BadRequest("details is null");
             var file = _csvService.WriteCSV(dto);
             return File(file, "application/octet-stream", "export.csv");
         }
-
+        /// <summary>
+        /// draw png scheme 1d cutting caltulating
+        /// </summary>
+        /// <returns>png scheme cutting</returns>
         [HttpPost]
-        [Route("/1d/exportPng")]
+        [Route("/1d/export/png")]
         public async Task<IActionResult> ExportPng([FromBody] Cutting1DResult dto)
         {
             var imageBytes = _drawService.Draw1DCutting(dto);
