@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
+using System.IO;
 using vega.Services.Interfaces;
 
 namespace vega.Services
@@ -16,17 +17,19 @@ namespace vega.Services
             return records;
         }
 
-        public MemoryStream WriteCSV<T>(IEnumerable<T> items)
+        public byte[] WriteCSV<T>(IEnumerable<T> items)
         {
-            var stream = new MemoryStream();
-            using (var writeFile = new StreamWriter(stream, leaveOpen: true))
+            using (var stream = new MemoryStream())
             {
-                var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = ",", HasHeaderRecord = false };
-                var csv = new CsvWriter(writeFile, config);
-                csv.WriteRecords(items);
+                using (var writeFile = new StreamWriter(stream, leaveOpen: true))
+                {
+                    var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = ",", HasHeaderRecord = false };
+                    var csv = new CsvWriter(writeFile, config);
+                    csv.WriteRecords(items);
+                }
+                stream.Position = 0;
+                return stream.ToArray();
             }
-            stream.Position = 0;
-            return stream;
         }
     }
 }

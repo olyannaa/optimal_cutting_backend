@@ -28,8 +28,7 @@ namespace vega.Controllers
         /// <param name="file"></param>
         /// <returns>JSON file with details length and count</returns>
         /// <response code="200">Formatting is ok</response>
-        /// <response code="400">Input file is null</response>
-        /// <response code="401"> Invalid file type. Please upload a CSV file</response>
+        /// <response code="400">Input file is null or Invalid file type. Please upload a CSV file</response>
         [HttpPost]
         [Route("/1d/import/csv")]
         public async Task<ActionResult> ImportCsv(IFormFile file)
@@ -68,7 +67,7 @@ namespace vega.Controllers
         }
 
         /// <summary>
-        /// download pdf scheme 1d cutting caltulating
+        /// download pdf scheme 1d cutting calculating
         /// </summary>
         /// <returns>pdf file</returns>
         [HttpPost]
@@ -76,19 +75,20 @@ namespace vega.Controllers
         public async Task<IActionResult> ExportPdf([FromBody] Cutting1DResult dto)
         {
             var imageBytes = _drawService.Draw1DCutting(dto);
-            var ms = new MemoryStream();
-            var document = new Document();
-            PdfWriter.GetInstance(document, ms);
-            document.Open();
-            var image = Image.GetInstance(imageBytes);
-            var table = new PdfPTable(1);
-            table.AddCell(image);
-            document.Add(table);
-            document.Close();
+            using (var ms = new MemoryStream())
+            {
+                var document = new Document();
+                PdfWriter.GetInstance(document, ms);
+                document.Open();
+                var image = Image.GetInstance(imageBytes);
+                var table = new PdfPTable(1);
+                table.AddCell(image);
+                document.Add(table);
+                document.Close();
 
-
-            byte[] pdfData = ms.ToArray();
-            return File(pdfData, "application/octet-stream", "export.pdf");
+                byte[] pdfData = ms.ToArray();
+                return File(pdfData, "application/octet-stream", "export.pdf");
+            }
         }
 
         //check file type

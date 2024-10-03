@@ -34,7 +34,7 @@ namespace vega.Controllers
 
         [HttpPost]
         [Route("/token")]
-        public dynamic GetToken([FromForm] AuthDto dto)
+        public dynamic GetToken([FromForm] AuthDTO dto)
         {
             var identity = new ClaimsIdentity(new GenericIdentity(dto.Login));
             var access = _tokenManager.GetAccessToken(identity);
