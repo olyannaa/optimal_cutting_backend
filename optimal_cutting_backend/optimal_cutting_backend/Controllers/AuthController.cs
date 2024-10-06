@@ -32,7 +32,7 @@ namespace vega.Controllers
         {
             //ToDo: Реализовать валидацию пользователя
             var identity = new ClaimsIdentity(new GenericIdentity(dto.Login));
-            var access = _tokenManager.GetAccessToken(identity);
+            var access = _tokenManager.GetTokens(identity);
 
             return access;
         }
