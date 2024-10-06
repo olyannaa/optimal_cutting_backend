@@ -54,7 +54,5 @@ namespace vega.Controllers
             var currentUser = _context?.HttpContext?.User;
             return currentUser.Identity.Name;
         }
-
-
     }
 }

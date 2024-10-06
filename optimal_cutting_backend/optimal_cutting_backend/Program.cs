@@ -21,9 +21,10 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
-builder.Services.AddStackExchangeRedisCache(options => {
-    options.Configuration = "localhost"; // хост сервера кэширования ip:port
-    options.InstanceName = "local"; // имя экземпляра Redis
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["RedisCacheOptions:Configuration"];
+    options.InstanceName = builder.Configuration["RedisCacheOptions:InstanceName"];
 });
 
 builder.Services.AddAuthorization();
