@@ -29,7 +29,11 @@ namespace vega.Services
             var accessToken = GenerateAccessToken(claimsIdentity);
             var refreshToken = GenerateRefreshToken();
 
-            _cache.SetString(refreshToken, accessToken);
+            _cache.SetString(refreshToken, accessToken, options: new DistributedCacheEntryOptions()
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
+            });
+
             return (accessToken, refreshToken);
         }
 
@@ -71,8 +75,12 @@ namespace vega.Services
 
             var identity = _context?.HttpContext?.User?.Identity;
             accessToken = GenerateAccessToken(identity);
-            _cache.SetString(refreshToken, accessToken);
-            _cache.Refresh(refreshToken);
+
+            _cache.Remove(refreshToken);
+            _cache.SetString(refreshToken, accessToken, options: new DistributedCacheEntryOptions()
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
+            });
             DestroySessionToken();
 
             return true;
