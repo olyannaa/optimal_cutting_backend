@@ -1,10 +1,13 @@
 ﻿using System.Security.Claims;
+using System.Security.Principal;
 
 namespace vega.Services
 {
     public interface ITokenManagerService
     {
-        string GetAccessToken(ClaimsIdentity identity);
-        string DestroyToken();
+        (string access, string refresh) GetTokens(IIdentity claimsIdentity);
+        void DestroySessionToken();
+        bool IsTokenValid();
+        bool RefreshToken(out string accessToken, string refreshToken);
     }
 }

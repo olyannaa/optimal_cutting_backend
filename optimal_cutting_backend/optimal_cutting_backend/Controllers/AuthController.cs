@@ -1,14 +1,13 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Security.Principal;
-using System.Text;
 using vega.Controllers.DTO;
 using vega.Migrations.EF;
-using Npgsql;
 using System.Security.Cryptography;
 using vega.Services;
+using System.Text;
 
 namespace vega.Controllers
 {
@@ -20,7 +19,8 @@ namespace vega.Controllers
         private readonly IHttpContextAccessor _context;
         private readonly VegaContext _db;
 
-        public AuthController(ILogger<AuthController> logger, ITokenManagerService tokenManager, IHttpContextAccessor httpContext, VegaContext dbContext)
+        public AuthController(ILogger<AuthController> logger,
+            ITokenManagerService tokenManager, IHttpContextAccessor httpContext, VegaContext dbContext)
         {
             _logger = logger;
             _tokenManager = tokenManager;
@@ -45,9 +45,21 @@ namespace vega.Controllers
             if (encryptePassword != user.Password) return BadRequest("wrong password");
 
             var identity = new ClaimsIdentity(new GenericIdentity(user.FullName));
-            var access = _tokenManager.GetAccessToken(identity);
+            var tokens = _tokenManager.GetTokens(identity);
 
-            return Ok(access);
+            return Ok(new AuthResponseDTO() {
+                Refresh = tokens.refresh,
+                Access = tokens.access}
+            );
+        }
+
+        [HttpGet]
+        [Route("/logout")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult DestroySessionToken()
+        {
+            _tokenManager.DestroySessionToken();
+            return Ok();   
         }
 
         /// <summary>

@@ -478,3 +478,5 @@ $RECYCLE.BIN/
 
 .vscode
 optimal_cutting_backend/optimal_cutting_backend/vega.xml
+
+.redisdata/

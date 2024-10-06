@@ -1,6 +1,11 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text;
 
 namespace vega.Services
@@ -8,12 +13,82 @@ namespace vega.Services
     public class TokenManagerService : ITokenManagerService
     {
         private readonly IConfiguration _config;
-        public TokenManagerService(IConfiguration config)
+        private readonly IDistributedCache _cache;
+        private readonly IHttpContextAccessor _context;
+
+        public TokenManagerService(IConfiguration config,
+            IDistributedCache distributedCache, IHttpContextAccessor httpContext)
         { 
             _config = config;
+            _cache = distributedCache;
+            _context = httpContext;
         }
 
-        public string GetAccessToken(ClaimsIdentity identity)
+        public (string, string) GetTokens(IIdentity claimsIdentity)
+        {
+            var accessToken = GenerateAccessToken(claimsIdentity);
+            var refreshToken = GenerateRefreshToken();
+
+            _cache.SetString(refreshToken, accessToken);
+            return (accessToken, refreshToken);
+        }
+
+        public void DestroySessionToken()
+        {
+            var authHeader = GetCurrent();
+            var securityToken = new JwtSecurityToken(authHeader);
+            _cache.SetString(authHeader, authHeader, options: new DistributedCacheEntryOptions()
+            {
+                AbsoluteExpirationRelativeToNow = securityToken.ValidTo - DateTime.UtcNow
+            });
+        }
+
+        public bool IsTokenValid()
+        {
+            var authHeader = GetCurrent();
+            if (authHeader == null)
+                return false;
+
+            var cachedToken = _cache.Get(authHeader);
+
+            return cachedToken == null;
+        }
+
+        public bool RefreshToken(out string accessToken, string refreshToken)
+        {
+            var oldAccessToken = _cache.GetString(refreshToken);
+            if (oldAccessToken == null)
+            {
+                accessToken = String.Empty;
+                return false;
+            }
+
+            if (oldAccessToken != GetCurrent())
+            {
+                accessToken = String.Empty;
+                return false;
+            }
+
+            var identity = _context?.HttpContext?.User?.Identity;
+            accessToken = GenerateAccessToken(identity);
+            _cache.SetString(refreshToken, accessToken);
+            _cache.Refresh(refreshToken);
+            DestroySessionToken();
+
+            return true;
+        }
+
+        private string? GetCurrent()
+        {
+            string? authorizationHeader = _context
+            ?.HttpContext?.Request.Headers["authorization"];
+
+            return authorizationHeader == null
+                ? null
+                : authorizationHeader.Split(" ").Last();
+        }
+
+        private string GenerateAccessToken(IIdentity identity)
         {
             var handler = new JwtSecurityTokenHandler();
 
@@ -22,19 +97,25 @@ namespace vega.Services
 
             var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
 
-            var token = handler.CreateJwtSecurityToken(
-                subject: identity,
+            var secToken = handler.CreateJwtSecurityToken(
+                subject: identity as ClaimsIdentity,
                 signingCredentials: signingCredentials,
                 audience: authOptions["Audience"],
                 issuer: authOptions["Issuer"],
                 expires: DateTime.UtcNow.AddMinutes(30));
 
-            return handler.WriteToken(token);
+            return handler.WriteToken(secToken);
         }
 
-        public string DestroyToken()
+        private string GenerateRefreshToken()
         {
-            throw new NotImplementedException();
+            var randomNumber = new byte[64];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                var refreshToken = Convert.ToBase64String(randomNumber);
+                return refreshToken;
+            }
         }
     }
 }
