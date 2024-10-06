@@ -27,20 +27,23 @@ namespace vega.Controllers
         }
 
         [HttpPost]
-        [Route("/token")]
-        public dynamic GetToken([FromForm] AuthDto dto)
+        [Route("/login")]
+        public IActionResult GetToken([FromForm] AuthDto dto)
         {
             //ToDo: Реализовать валидацию пользователя
             var identity = new ClaimsIdentity(new GenericIdentity(dto.Login));
-            var access = _tokenManager.GetTokens(identity);
+            var tokens = _tokenManager.GetTokens(identity);
 
-            return access;
+            return Ok(new AuthResponseDTO() {
+                Refresh = tokens.refresh,
+                Access = tokens.access}
+            );
         }
 
-        [HttpDelete]
-        [Route("/token")]
+        [HttpGet]
+        [Route("/logout")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public dynamic DestroySessionToken()
+        public IActionResult DestroySessionToken()
         {
             _tokenManager.DestroySessionToken();
             return Ok();   
