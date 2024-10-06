@@ -2,7 +2,7 @@
 
 namespace vega.Controllers.DTO
 {
-    public class AuthDto
+    public class AuthDTO
     {
         [Required]
         public string Login { get; set; } = null!;

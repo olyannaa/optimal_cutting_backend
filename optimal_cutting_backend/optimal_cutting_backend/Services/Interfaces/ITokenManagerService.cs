@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace vega.Services
+namespace vega.Services.Interfaces
 {
     public interface ITokenManagerService
     {

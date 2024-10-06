@@ -4,7 +4,7 @@
         <name>vega</name>
     </assembly>
     <members>
-        <member name="M:vega.Controllers.AuthController.GetToken(vega.Controllers.DTO.AuthDto)">
+        <member name="M:vega.Controllers.AuthController.GetToken(vega.Controllers.DTO.AuthDTO)">
             <summary>
             Authorizes user in system.
             </summary>
@@ -19,6 +19,45 @@
             <returns>User name</returns>
             <response code="200">Returns user info</response>
             <response code="401">Not authorized</response>
+        </member>
+        <member name="M:vega.Controllers.CuttingController.Calculate1DCutting(vega.Controllers.DTO.Calculate1DDTO)">
+            <summary>
+            Method for calculating optimal 1d cutting.
+            </summary>
+            <param name="dto"></param>
+            <returns>Returns the calculated model</returns>
+            <response code="200">Calculeted is ok</response>
+            <response code="500">Detail length > workpiece length</response>
+        </member>
+        <member name="M:vega.Controllers.FileController.ImportCsv(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            import csv file and formating him in json
+            </summary>
+            <param name="file"></param>
+            <returns>JSON file with details length and count</returns>
+            <response code="200">Formatting is ok</response>
+            <response code="400">Input file is null or Invalid file type. Please upload a CSV file</response>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportCsv(System.Collections.Generic.List{vega.Controllers.DTO.DetailOneDivisionDTO})">
+            <summary>
+            formating json to csv and export csv file
+            </summary>
+            <param name="file"></param>
+            <returns>JSON file with details length and count</returns>
+            <response code="200">Export is ok</response>
+            <response code="400">Details count = 0</response>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportPng(vega.Models.Cutting1DResult)">
+            <summary>
+            draw png scheme 1d cutting caltulating
+            </summary>
+            <returns>png scheme cutting</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportPdf(vega.Models.Cutting1DResult)">
+            <summary>
+            download pdf scheme 1d cutting calculating
+            </summary>
+            <returns>pdf file</returns>
         </member>
     </members>
 </doc>

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -8,7 +8,7 @@ using vega.Controllers.DTO;
 using vega.Migrations.EF;
 using Npgsql;
 using System.Security.Cryptography;
-using vega.Services;
+using vega.Services.Interfaces;
 
 namespace vega.Controllers
 {
@@ -35,8 +35,8 @@ namespace vega.Controllers
         /// <response code="200">Returns JWT access</response>
         /// <response code="400">If user is not registered in system or password is wrong</response>
         [HttpPost]
-        [Route("/login")]
-        public IActionResult GetToken([FromForm] AuthDto dto)
+        [Route("/token")]
+        public dynamic GetToken([FromForm] AuthDTO dto)
         {
             var user = _db.Users.FirstOrDefault(x => x.Login == dto.Login);
             if (user == null) return BadRequest("user is not found");
