@@ -56,7 +56,11 @@ docker-compose build
 **From now on you need to manage several steps to start an application:**
 1) Make sure that you have copied relevant version of *appsettins.json* file
 2) Make sure that docker is running up
-3) Execute following line of code in *docker-compose.yml* folder via Visual Studio Code
+3) If there are any updates on project, you should rebuild docker-compose:
+```
+docker-compose build
+```
+4) Execute following line of code in *docker-compose.yml* folder via Visual Studio Code
 ```
 docker-compose up
 ```
