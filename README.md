@@ -31,7 +31,7 @@ cd optimal_cutting_backend
 6) Generate SSL certificates for development
 ```
 dotnet dev-certs https --clear
-dotnet dev-certs https -ep $env:USERPROFILE\.aspnet\https\aspnetapp.pfx -p *password*
+dotnet dev-certs https -ep $env:USERPROFILE\.aspnet\https\aspnetapp.pfx -p my_secure_password
 dotnet dev-certs https --trust
 ```
 if dev-certs utility is not installed use command:
