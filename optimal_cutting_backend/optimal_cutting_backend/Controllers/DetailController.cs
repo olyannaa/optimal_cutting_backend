@@ -32,12 +32,12 @@ namespace vega.Controllers
         }
 
         /// <summary>
-        /// Create new detail
+        /// Create new detail and generate png file
         /// </summary>
         /// <returns></returns>
         [HttpPost]
         [Route("/detail")]
-        public IActionResult CreateDetail(DetailDTO dto, IFormFile file)
+        public async Task<IActionResult> CreateDetail(DetailDTO dto, IFormFile file)
         {
             var detail = new Filename
             {
