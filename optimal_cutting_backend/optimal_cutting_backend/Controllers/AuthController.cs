@@ -3,12 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Security.Principal;
-using System.Text;
 using vega.Controllers.DTO;
 using vega.Migrations.EF;
-using Npgsql;
 using System.Security.Cryptography;
 using vega.Services.Interfaces;
+using System.Text;
 
 namespace vega.Controllers
 {
@@ -20,7 +19,8 @@ namespace vega.Controllers
         private readonly IHttpContextAccessor _context;
         private readonly VegaContext _db;
 
-        public AuthController(ILogger<AuthController> logger, ITokenManagerService tokenManager, IHttpContextAccessor httpContext, VegaContext dbContext)
+        public AuthController(ILogger<AuthController> logger,
+            ITokenManagerService tokenManager, IHttpContextAccessor httpContext, VegaContext dbContext)
         {
             _logger = logger;
             _tokenManager = tokenManager;
@@ -32,11 +32,11 @@ namespace vega.Controllers
         /// Authorizes user in system.
         /// </summary>
         /// <returns>Returns JWT</returns>
-        /// <response code="200">Returns JWT access</response>
+        /// <response code="200">Returns JWT access and refresh</response>
         /// <response code="400">If user is not registered in system or password is wrong</response>
         [HttpPost]
-        [Route("/token")]
-        public dynamic GetToken([FromForm] AuthDTO dto)
+        [Route("/login")]
+        public IActionResult GetTokens([FromForm] AuthDTO dto)
         {
             var user = _db.Users.FirstOrDefault(x => x.Login == dto.Login);
             if (user == null) return BadRequest("user is not found");
@@ -45,9 +45,26 @@ namespace vega.Controllers
             if (encryptePassword != user.Password) return BadRequest("wrong password");
 
             var identity = new ClaimsIdentity(new GenericIdentity(user.FullName));
-            var access = _tokenManager.GetAccessToken(identity);
+            var tokens = _tokenManager.GetTokens(identity);
 
-            return Ok(access);
+            return Ok(new AuthResponseDTO() {
+                Refresh = tokens.refresh,
+                Access = tokens.access}
+            );
+        }
+
+        /// <summary>
+        /// Deactivates user's access-token and logs out user from system.
+        /// </summary>
+        /// <returns>User name</returns>
+        /// <response code="200">Logout user succefully</response>
+        [HttpGet]
+        [Route("/logout")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult DestroySessionTokens()
+        {
+            _tokenManager.DestroySessionToken();
+            return Ok();   
         }
 
         /// <summary>
@@ -59,10 +76,32 @@ namespace vega.Controllers
         [HttpGet]
         [Route("/user")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public IActionResult Index()
+        public IActionResult GetUserIdentity()
         {
             var currentUser = _context?.HttpContext?.User;
             return Ok(currentUser.Identity.Name);
+        }
+
+        /// <summary>
+        /// Refreshes user access token via refresh token.
+        /// </summary>
+        /// <returns>Returns JWT</returns>
+        /// <response code="200">Returns JWT access and refresh</response>
+        /// <response code="403">Refresh has expired or not associated with user's access</response>
+        [HttpPost]
+        [Route("/refresh-token")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult RefreshAccessToken([FromForm] string refreshToken)
+        {
+            if(_tokenManager.RefreshToken(out var accessToken, refreshToken))
+            {
+                return Ok(new AuthResponseDTO() {
+                    Refresh = refreshToken,
+                    Access = accessToken}
+                    );
+            }
+
+            return Forbid();
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
