@@ -26,6 +26,5 @@ namespace vega.Migrations.EF
             optionsBuilder.LogTo(Console.WriteLine);
             optionsBuilder.EnableSensitiveDataLogging();
         }
-
     }
 }

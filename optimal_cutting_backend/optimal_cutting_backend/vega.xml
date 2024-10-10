@@ -4,21 +4,36 @@
         <name>vega</name>
     </assembly>
     <members>
-        <member name="M:vega.Controllers.AuthController.GetToken(vega.Controllers.DTO.AuthDTO)">
+        <member name="M:vega.Controllers.AuthController.GetTokens(vega.Controllers.DTO.AuthDTO)">
             <summary>
             Authorizes user in system.
             </summary>
             <returns>Returns JWT</returns>
-            <response code="200">Returns JWT access</response>
+            <response code="200">Returns JWT access and refresh</response>
             <response code="400">If user is not registered in system or password is wrong</response>
         </member>
-        <member name="M:vega.Controllers.AuthController.Index">
+        <member name="M:vega.Controllers.AuthController.DestroySessionTokens">
+            <summary>
+            Deactivates user's access-token and logs out user from system.
+            </summary>
+            <returns>User name</returns>
+            <response code="200">Logout user succefully</response>
+        </member>
+        <member name="M:vega.Controllers.AuthController.GetUserIdentity">
             <summary>
             Retrieves logged in user information.
             </summary>
             <returns>User name</returns>
             <response code="200">Returns user info</response>
             <response code="401">Not authorized</response>
+        </member>
+        <member name="M:vega.Controllers.AuthController.RefreshAccessToken(System.String)">
+            <summary>
+            Refreshes user access token via refresh token.
+            </summary>
+            <returns>Returns JWT</returns>
+            <response code="200">Returns JWT access and refresh</response>
+            <response code="403">Refresh has expired or not associated with user's access</response>
         </member>
         <member name="M:vega.Controllers.CuttingController.Calculate1DCutting(vega.Controllers.DTO.Calculate1DDTO)">
             <summary>

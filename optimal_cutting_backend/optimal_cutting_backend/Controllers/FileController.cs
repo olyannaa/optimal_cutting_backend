@@ -34,7 +34,7 @@ namespace vega.Controllers
         public async Task<ActionResult> ImportCsv(IFormFile file)
         {
             if (file == null) return StatusCode(400);
-            if (!IsFileExtensionAllowed(file, new string[] { ".csv" })) return StatusCode(401);
+            if (!IsFileExtensionAllowed(file, new string[] { ".csv" })) return StatusCode(400);
             var details = _csvService.ReadCSV<DetailOneDivisionDTO>(file.OpenReadStream());
             return Ok(details);
         }
@@ -86,7 +86,7 @@ namespace vega.Controllers
                 document.Add(table);
                 document.Close();
 
-                byte[] pdfData = ms.ToArray();
+                var pdfData = ms.ToArray();
                 return File(pdfData, "application/octet-stream", "export.pdf");
             }
         }
