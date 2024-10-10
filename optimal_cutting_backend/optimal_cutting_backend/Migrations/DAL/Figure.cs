@@ -8,10 +8,10 @@ namespace vega.Migrations.DAL
         [Column("figures_id")]
         public int Id { get; set; }
         [Column("filename_id")]
-        public int Filenameid { get; set; }
+        public int FilenameId { get; set; }
         [Column("type_id")]
         public int TypeId { get; set; }
-        [Column("coorditanes")]
+        [Column("coordinates")]
         public string Coordinates{ get; set; }
     }
 }
