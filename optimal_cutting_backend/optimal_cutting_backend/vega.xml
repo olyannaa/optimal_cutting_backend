@@ -44,6 +44,24 @@
             <response code="200">Calculeted is ok</response>
             <response code="500">Detail length > workpiece length</response>
         </member>
+        <member name="M:vega.Controllers.DetailController.GetDetails">
+            <summary>
+            Get all details
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:vega.Controllers.DetailController.CreateDetail(vega.DTO.DetailDTO,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Create new detail
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:vega.Controllers.DetailController.GetMaterials">
+            <summary>
+            Get all materials
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:vega.Controllers.FileController.ImportCsv(Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             import csv file and formating him in json

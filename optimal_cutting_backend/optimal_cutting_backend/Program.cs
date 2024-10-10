@@ -90,6 +90,7 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddScoped<ICSVService, CSVService>();
 builder.Services.AddScoped<ICutting1DService, Cutting1DService>();
 builder.Services.AddScoped<IDrawService, DrawService>();
+builder.Services.AddSingleton<IDXFService, DXFService>();
 
 var app = builder.Build();
 
