@@ -59,7 +59,7 @@ namespace vega.Controllers
         /// </summary>
         /// <returns>png scheme cutting</returns>
         [HttpPost]
-        [Route("/1d/export/png")]
+        [Route("/1d/export/result/png")]
         public async Task<IActionResult> ExportPng([FromBody] Cutting1DResult dto)
         {
             var imageBytes = _drawService.Draw1DCutting(dto);
@@ -71,7 +71,7 @@ namespace vega.Controllers
         /// </summary>
         /// <returns>pdf file</returns>
         [HttpPost]
-        [Route("/1d/export/pdf")]
+        [Route("/1d/export/result/pdf")]
         public async Task<IActionResult> ExportPdf([FromBody] Cutting1DResult dto)
         {
             var imageBytes = _drawService.Draw1DCutting(dto);
@@ -89,6 +89,19 @@ namespace vega.Controllers
                 var pdfData = ms.ToArray();
                 return File(pdfData, "application/octet-stream", "export.pdf");
             }
+        }
+
+        /// <summary>
+        /// download csv file result 1d cutting calculating
+        /// </summary>
+        /// <returns>pdf file</returns>
+        [HttpPost]
+        [Route("/1d/export/result/csv")]
+        public async Task<IActionResult> ExportResultCSV([FromBody] Cutting1DResult dto)
+        {
+            var file = _csvService.WriteCSV(dto.Workpieces);
+            return File(file, "application/octet-stream", "result.csv");
+
         }
 
         //check file type

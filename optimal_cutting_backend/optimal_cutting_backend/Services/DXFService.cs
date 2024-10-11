@@ -4,7 +4,7 @@ using iTextSharp.text.pdf.qrcode;
 using netDxf;
 using netDxf.Entities;
 using SkiaSharp;
-using vega.DTO;
+using vega.Controllers.DTO;
 using vega.Services.Interfaces;
 
 namespace vega.Services

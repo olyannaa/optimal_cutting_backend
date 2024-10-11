@@ -50,9 +50,9 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:vega.Controllers.DetailController.CreateDetail(vega.DTO.DetailDTO,Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:vega.Controllers.DetailController.CreateDetail(vega.Controllers.DTO.DetailDTO,Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
-            Create new detail
+            Create new detail and generate png file
             </summary>
             <returns></returns>
         </member>
@@ -89,6 +89,12 @@
         <member name="M:vega.Controllers.FileController.ExportPdf(vega.Models.Cutting1DResult)">
             <summary>
             download pdf scheme 1d cutting calculating
+            </summary>
+            <returns>pdf file</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportResultCSV(vega.Models.Cutting1DResult)">
+            <summary>
+            download csv file result 1d cutting calculating
             </summary>
             <returns>pdf file</returns>
         </member>

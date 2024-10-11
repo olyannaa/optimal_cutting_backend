@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using vega.DTO;
+using vega.Controllers.DTO;
 using vega.Migrations.DAL;
 using vega.Migrations.EF;
 using vega.Services;

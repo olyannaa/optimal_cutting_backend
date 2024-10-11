@@ -1,4 +1,4 @@
-﻿using vega.DTO;
+﻿using vega.Controllers.DTO;
 
 namespace vega.Services.Interfaces
 {

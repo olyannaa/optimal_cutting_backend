@@ -43,7 +43,7 @@ namespace vega.Services
                 }
                 canvas.DrawRect(new SKRect(x, y, (int)(workpiece.Length*detailWidthCoeff), y + detailHeight), blackPaint);
                 canvas.DrawRect(new SKRect(x + 1, y + 1, (int)(workpiece.Length * detailWidthCoeff) - 1, y + detailHeight - 1), grayPaint);
-                canvas.DrawText((workpiece.Length - x).ToString(), x + 2, y + detailHeight / 2 + 10, whitePaint);
+                canvas.DrawText((workpiece.Length - workpiece.Details.Sum(d => d)).ToString(), x + 2, y + detailHeight / 2 + 10, whitePaint);
                 x = 0;
                 y += detailHeight;
             }

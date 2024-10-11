@@ -11,7 +11,7 @@ namespace vega.Services
         public IEnumerable<T> ReadCSV<T>(Stream file)
         {
             var reader = new StreamReader(file);
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = ",", HasHeaderRecord = false };
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = ";", HasHeaderRecord = false };
             var csv = new CsvReader(reader, config);
             var records = csv.GetRecords<T>();
             return records;
@@ -23,7 +23,7 @@ namespace vega.Services
             {
                 using (var writeFile = new StreamWriter(stream, leaveOpen: true))
                 {
-                    var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = ",", HasHeaderRecord = false };
+                    var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = ";", HasHeaderRecord = false };
                     var csv = new CsvWriter(writeFile, config);
                     csv.WriteRecords(items);
                 }
