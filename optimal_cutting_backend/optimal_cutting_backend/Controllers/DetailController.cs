@@ -12,11 +12,13 @@ namespace vega.Controllers
     {
         private readonly VegaContext _db;
         private readonly IDXFService _dxfService;
+        private readonly IDrawService _drawService;
 
-        public DetailController(VegaContext db, IDXFService dXFService)
+        public DetailController(VegaContext db, IDXFService dXFService, IDrawService drawService)
         {
             _db = db;
             _dxfService = dXFService;
+            _drawService = drawService;
         }
 
 
@@ -64,7 +66,7 @@ namespace vega.Controllers
             }));
             _db.SaveChanges();
 
-            var imageBytes = _dxfService.DrawPng(details);
+            var imageBytes = _drawService.DrawDXF(details);
             return File(imageBytes, "image/png");
         }
 
