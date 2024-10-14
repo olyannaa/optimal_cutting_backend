@@ -1,13 +1,25 @@
 
-services:   
-  stackupRedis:
+services:
+  vega-nginx:
+        image: nginx:alpine
+        container_name: vega-nginx
+        volumes:
+          - ./optimal_cutting_backend/nginx/nginx.conf:/etc/nginx/nginx.conf
+          - ./optimal_cutting_backend/nginx/certs/domain.crt:/etc/nginx/domain.crt
+          - ./optimal_cutting_backend/nginx/certs/domain.rsa:/etc/nginx/domain.rsa
+        ports:
+            - 80:80
+            - 443:443
+        restart: always
+        depends_on:
+          - vega-asp
+
+  vega-redis:
     image: redis:alpine
     container_name: vega-redis
     restart: always
-    ports:
-      - "6379:6379"
     volumes:
-      - ./.redisdata:/data
+      - ./optimal_cutting_backend/.redisdata:/data
     command: >
       sh -c '
         mkdir -p /usr/local/etc/redis &&
@@ -18,18 +30,17 @@ services:
         redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
       '
 
-  vega:
+  vega-asp:
     image: vega-asp
     build:
       context: .
       dockerfile: optimal_cutting_backend/optimal_cutting_backend/Dockerfile
-    ports:
-      - 5000:5000
-      - 5001:5001
     environment:
         - ASPNETCORE_ENVIRONMENT=Development
-        - ASPNETCORE_URLS=http://+:5000;https://+:5001
-        - Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-        - Kestrel__Certificates__Default__Password=my_secure_password
+        - ASPNETCORE_URLS=http://+:5000;
+        #- Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+        #- Kestrel__Certificates__Default__Password=my_secure_password
     volumes:
-      - ~/.aspnet/https:/https:ro #this is very important
+      - ~/.aspnet/https:/https:ro
+    depends_on:
+      - vega-redis
