@@ -8,7 +8,7 @@ namespace vega.Services
 {
     public class DrawService : IDrawService
     {
-        public byte[] DrawDXF(List<FigureDTO> figures)
+        public async Task<byte[]> DrawDXFAsync(List<FigureDTO> figures)
         {
             var maxX = figures.Max(f => float.Parse(f.Coorditanes.Split(';')[0]));
             var maxY = figures.Max(f => float.Parse(f.Coorditanes.Split(';')[1]));
@@ -68,10 +68,8 @@ namespace vega.Services
             var image = SKImage.FromBitmap(bitmap);
             return image.Encode().ToArray();
         }
-        public byte[] Draw1DCutting(Cutting1DResult result)
+        public async Task<byte[]> Draw1DCuttingAsync(Cutting1DResult result)
         {
-
-
             var width = 800;
             var height = 500;
             var detailHeight = height/result.Workpieces.Count;

@@ -62,7 +62,7 @@ namespace vega.Controllers
         [Route("/1d/export/result/png")]
         public async Task<IActionResult> ExportPng([FromBody] Cutting1DResult dto)
         {
-            var imageBytes = _drawService.Draw1DCutting(dto);
+            var imageBytes = await _drawService.Draw1DCuttingAsync(dto);
             return File(imageBytes, "image/png");
         }
 
@@ -74,7 +74,7 @@ namespace vega.Controllers
         [Route("/1d/export/result/pdf")]
         public async Task<IActionResult> ExportPdf([FromBody] Cutting1DResult dto)
         {
-            var imageBytes = _drawService.Draw1DCutting(dto);
+            var imageBytes = await _drawService.Draw1DCuttingAsync(dto);
             using (var ms = new MemoryStream())
             {
                 var document = new Document();

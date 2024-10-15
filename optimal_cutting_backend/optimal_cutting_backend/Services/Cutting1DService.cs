@@ -5,7 +5,7 @@ namespace vega.Services
 {
     public class Cutting1DService : ICutting1DService
     {
-        public Cutting1DResult CalculateCutting(List<int> details, int workpiece)
+        public async Task<Cutting1DResult> CalculateCuttingAsync(List<int> details, int workpiece)
         {
             if (details.Max(x => x) > workpiece)
                 throw new Exception("detail length > workpiece length");
