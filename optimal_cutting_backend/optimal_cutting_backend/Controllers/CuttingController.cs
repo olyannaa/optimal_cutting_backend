@@ -23,7 +23,7 @@ namespace vega.Controllers
         [Route("1d/calculate")]
         public async Task<ActionResult> Calculate1DCutting([FromBody] Calculate1DDTO dto)
         {
-            var res = _cutting1DService.CalculateCutting(dto.Details, dto.WorkpieceLength);
+            var res = await _cutting1DService.CalculateCuttingAsync(dto.Details, dto.WorkpieceLength);
             return Ok(res);
         }
     }

@@ -4,6 +4,6 @@ namespace vega.Services.Interfaces
 {
     public interface IDXFService
     {
-        public List<FigureDTO> GetDXF(byte[] fileBytes);
+        public Task<List<FigureDTO>> GetDXFAsync(byte[] fileBytes);
     }
 }

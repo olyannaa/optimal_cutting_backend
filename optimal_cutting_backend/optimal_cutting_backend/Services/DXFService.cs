@@ -13,7 +13,7 @@ namespace vega.Services
     {
         
 
-        public List<FigureDTO> GetDXF(byte[] fileBytes)
+        public async Task<List<FigureDTO>> GetDXFAsync(byte[] fileBytes)
         {
             var ans = new List<FigureDTO>();
             using var stream = new MemoryStream(fileBytes);

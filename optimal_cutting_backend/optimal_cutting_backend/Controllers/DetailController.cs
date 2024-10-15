@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using vega.Controllers.DTO;
 using vega.Migrations.DAL;
 using vega.Migrations.EF;
-using vega.Services;
 using vega.Services.Interfaces;
-using static iTextSharp.text.pdf.AcroFields;
 
 namespace vega.Controllers
 {
@@ -30,7 +29,7 @@ namespace vega.Controllers
         [Route("/detail")]
         public async Task<IActionResult> GetDetails()
         {
-            return Ok(_db.Filenames.ToArray());
+            return Ok(await _db.Filenames.ToListAsync());
         }
 
         /// <summary>
@@ -54,19 +53,19 @@ namespace vega.Controllers
             using var fileStream = file.OpenReadStream();
             byte[] bytes = new byte[file.Length];
             fileStream.Read(bytes, 0, (int)file.Length);
-            _db.Filenames.Add(detail);
-            _db.SaveChanges();
+            await _db.Filenames.AddAsync(detail);
+            await _db.SaveChangesAsync();
 
-            var details = _dxfService.GetDXF(bytes);
-            _db.Figures.AddRange(details.Select(d => new Figure()
+            var details = await _dxfService.GetDXFAsync(bytes);
+            await _db.Figures.AddRangeAsync(details.Select(d => new Figure()
             {
                 Coordinates = d.Coorditanes,
                 TypeId = d.TypeId,
                 FilenameId = detail.Id,
             }));
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var imageBytes = _drawService.DrawDXF(details);
+            var imageBytes = await _drawService.DrawDXFAsync(details);
             return File(imageBytes, "image/png");
         }
 
@@ -78,7 +77,7 @@ namespace vega.Controllers
         [Route("/detail/material")]
         public async Task<IActionResult> GetMaterials()
         {
-            return Ok(_db.Materials.ToArray());
+            return Ok(await _db.Materials.ToListAsync());
         }
     }
 }
