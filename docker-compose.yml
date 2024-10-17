@@ -19,7 +19,7 @@ services:
     container_name: vega-redis
     restart: always
     volumes:
-      - ./optimal_cutting_backend/.redisdata:/data
+      - ./optimal_cutting_backend/redis/.redisdata:/data
     command: >
       sh -c '
         mkdir -p /usr/local/etc/redis &&
@@ -40,7 +40,19 @@ services:
         - ASPNETCORE_URLS=http://+:5000;
         #- Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
         #- Kestrel__Certificates__Default__Password=my_secure_password
+    ports:
+      - 5000:5000
     volumes:
       - ~/.aspnet/https:/https:ro
     depends_on:
       - vega-redis
+
+  vega-postgres:
+    image: postgis/postgis:17-3.5-alpine
+    restart: always
+    volumes:
+      - ./optimal_cutting_backend/postgres/.postgresdata:/var/lib/postgresql/data/
+      - ./optimal_cutting_backend/postgres/:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: "#"
+      POSTGRES_PASSWORD: "#"
