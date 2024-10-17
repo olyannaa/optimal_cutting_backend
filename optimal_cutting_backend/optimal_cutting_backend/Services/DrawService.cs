@@ -14,8 +14,8 @@ namespace vega.Services
             var maxY = figures.Max(f => float.Parse(f.Coorditanes.Split(';')[1]));
             var minX = figures.Min(f => float.Parse(f.Coorditanes.Split(';')[0]));
             var minY = figures.Min(f => float.Parse(f.Coorditanes.Split(';')[1]));
-            var width = (int)((maxX - minX) * 1.2) ;
-            var height = (int)((maxY - minY)* 1.3) ;
+            var width = (int)((maxX - minX) * 1.2);
+            var height = (int)((maxY - minY) * 1.3);
 
             var bitmap = new SKBitmap(width, height);
             var canvas = new SKCanvas(bitmap);
@@ -62,7 +62,7 @@ namespace vega.Services
                     canvas.DrawArc(new SKRect(centerX - radius,
                         centerY - radius,
                         centerX + radius,
-                        centerY + radius), startAngle, Math.Abs(endAngle+360 - startAngle)%360, false, whitePaint);
+                        centerY + radius), startAngle, Math.Abs(endAngle + 360 - startAngle) % 360, false, whitePaint);
                 }
             }
             var image = SKImage.FromBitmap(bitmap);
@@ -70,14 +70,14 @@ namespace vega.Services
         }
         public async Task<byte[]> Draw1DCuttingAsync(Cutting1DResult result)
         {
-            var width = 800;
-            var height = 500;
-            var detailHeight = height/result.Workpieces.Count;
+            var width = result.Workpieces.Max(w => w.Details.Count()) * 100 + 10;
+            var height = result.Workpieces.Count * 40 + 10;
+            var detailHeight = height / result.Workpieces.Count;
             var detailWidthCoeff = (double)width / result.Workpieces.Max(w => w.Length);
 
             var bitmap = new SKBitmap(width, height);
             var canvas = new SKCanvas(bitmap);
-            
+
             var greenPaint = new SKPaint();
             var grayPaint = new SKPaint();
             var blackPaint = new SKPaint();
@@ -85,7 +85,7 @@ namespace vega.Services
             greenPaint.Color = new SKColor(26, 188, 156);
             blackPaint.Color = SKColors.Black;
             whitePaint.Color = SKColors.White;
-            whitePaint.TextSize = 20;
+            whitePaint.TextSize = 14;
             grayPaint.Color = new SKColor(127, 140, 141);
             int x = 0;
             int y = 0;
@@ -94,13 +94,13 @@ namespace vega.Services
                 foreach (var detailWidth in workpiece.Details)
                 {
                     var newDetailWidth = (int)(detailWidth * detailWidthCoeff);
-                    canvas.DrawRect(new SKRect(x,y, x + newDetailWidth, y + detailHeight), blackPaint);
+                    canvas.DrawRect(new SKRect(x, y, x + newDetailWidth, y + detailHeight), blackPaint);
                     canvas.DrawRect(new SKRect(x + 1, y + 1, x + newDetailWidth - 1, y + detailHeight - 1),
                         greenPaint);
                     canvas.DrawText(detailWidth.ToString(), x + 2, y + detailHeight / 2 + 10, whitePaint);
                     x += newDetailWidth;
                 }
-                canvas.DrawRect(new SKRect(x, y, (int)(workpiece.Length*detailWidthCoeff), y + detailHeight), blackPaint);
+                canvas.DrawRect(new SKRect(x, y, (int)(workpiece.Length * detailWidthCoeff), y + detailHeight), blackPaint);
                 canvas.DrawRect(new SKRect(x + 1, y + 1, (int)(workpiece.Length * detailWidthCoeff) - 1, y + detailHeight - 1), grayPaint);
                 canvas.DrawText((workpiece.Length - workpiece.Details.Sum(d => d)).ToString(), x + 2, y + detailHeight / 2 + 10, whitePaint);
                 x = 0;
@@ -114,11 +114,11 @@ namespace vega.Services
 
         private float NormalizeXCoordinate(int width, string x)
         {
-            return width/2 + float.Parse(x);
+            return width / 2 + float.Parse(x);
         }
         private float NormalizeYCoordinate(int height, string y)
         {
-            return height/2 + float.Parse(y);
+            return height / 2 + float.Parse(y);
         }
     }
 }
