@@ -4,6 +4,6 @@ namespace vega.Services.Interfaces
 {
     public interface ICutting1DService
     {
-        public Task<Cutting1DResult> CalculateCuttingAsync(List<int> details, int workpiece);
+        public Task<Cutting1DResult> CalculateCuttingAsync(List<int> details, List<int> workpiece);
     }
 }
