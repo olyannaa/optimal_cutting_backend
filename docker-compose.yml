@@ -44,3 +44,23 @@ services:
     restart: always
     depends_on:
       - vega-redis
+
+  vega-npm:
+    container_name: vega-npm
+    image: finedandelion/vega-npm:0.2
+    # build:
+    #   context: ./optimal_cutting_backend/optimal_cutting_frontend/
+    #   dockerfile: Dockerfile
+    working_dir: /var/www/front
+    tty: true
+    volumes:
+      - ./optimal_cutting_backend/optimal_cutting_frontend/:/var/www/front
+      - ./optimal_cutting_backend/optimal_cutting_frontend/node_modules:/var/www/front/node_modules
+    ports:
+      - 3000:3000
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    command: ["npm", "run", "dev"]
+    restart: always
+    depends_on:
+      - vega-asp
