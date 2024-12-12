@@ -47,7 +47,7 @@ services:
 
   vega-npm:
     container_name: vega-npm
-    image: finedandelion/vega-npm:0.2
+    image: finedandelion/vega-npm:0.3.1
     # build:
     #   context: ./optimal_cutting_backend/optimal_cutting_frontend/
     #   dockerfile: Dockerfile
@@ -60,7 +60,7 @@ services:
       - 3000:3000
     extra_hosts:
       - 'host.docker.internal:host-gateway'
-    command: ["npm", "run", "dev"]
+    command: ["npm", "run", "dev", "--", "--host"]
     restart: always
     depends_on:
       - vega-asp
