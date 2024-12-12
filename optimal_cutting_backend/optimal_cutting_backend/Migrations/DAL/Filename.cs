@@ -1,10 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace vega.Migrations.DAL
 {
     [Table("filenames")]
     public class Filename
     {
+        [Key]
         [Column("filename_id")]
         public int Id { get; set; }
         [Column("filename")]

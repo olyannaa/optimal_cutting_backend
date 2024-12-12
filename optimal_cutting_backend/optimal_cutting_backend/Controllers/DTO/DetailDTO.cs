@@ -8,5 +8,6 @@
         public string Filename { get; set; }
         public int MaterialId { get; set; }
         public int UserId { get; set; }
+        public IFormFile File { get; set; }
     }
 }

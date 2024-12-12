@@ -44,7 +44,7 @@ namespace vega.Controllers
 
             return Ok(
                  filenames
-                 .Select(x => new { x.Id, x.Designation })
+                 .Select(x => new { x.Id, x.Designation, x.Thickness, x.MaterialId })
                  .OrderBy(x => x.Designation)
                  .GroupBy(x => new string(x.Designation.TakeWhile(x => x != '.').ToArray()))
                  .ToDictionary(x => x.Key, x => x.ToList()));
@@ -55,8 +55,10 @@ namespace vega.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> CreateDetail(DetailDTO dto, IFormFile file)
+        public async Task<IActionResult> CreateDetail([FromForm] DetailDTO dto)
         {
+            var filename = _db.Filenames.FirstOrDefault(x => x.Designation == dto.Designation);
+            if (filename != null) return BadRequest("detail with this designation is found");
             var detail = new Filename
             {
                 Name = dto.Name,
@@ -66,13 +68,13 @@ namespace vega.Controllers
                 MaterialId = dto.MaterialId,
                 UserId = dto.UserId,
             };
-            if (file.Length == 0) return BadRequest("file is null");
-            using var fileStream = file.OpenReadStream();
-            byte[] bytes = new byte[file.Length];
-            fileStream.Read(bytes, 0, (int)file.Length);
+            if (dto.File.Length == 0) return BadRequest("file is null");
             await _db.Filenames.AddAsync(detail);
             await _db.SaveChangesAsync();
 
+            using var fileStream = dto.File.OpenReadStream();
+            byte[] bytes = new byte[dto.File.Length];
+            fileStream.Read(bytes, 0, (int)dto.File.Length);
             var details = await _dxfService.GetDXFAsync(bytes);
             await _db.Figures.AddRangeAsync(details.Select(d => new Figure()
             {
@@ -95,6 +97,37 @@ namespace vega.Controllers
         public async Task<IActionResult> GetMaterials()
         {
             return Ok(await _db.Materials.ToListAsync());
+        }
+
+        /// <summary>
+        /// Create new workpiece
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("workpiece")]
+        public async Task<IActionResult> CreateWorkpiece([FromBody] WorkpieceDTO dto)
+        {
+            var workpiece = new Migrations.DAL.Workpiece
+            {
+                Name = dto.Name,
+                Width = dto.Width,
+                Height = dto.Height,
+            };
+            await _db.Workpieces.AddAsync(workpiece);
+            await _db.SaveChangesAsync();
+
+            return Ok(workpiece);
+        }
+
+        /// <summary>
+        /// Get all workpieces
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("workpiece")]
+        public async Task<IActionResult> GetWorkpieces()
+        {
+            return Ok(await _db.Workpieces.ToListAsync());
         }
     }
 }

@@ -2,10 +2,10 @@
 {
     public class Cutting1DResult
     {
-        public List<Workpiece> Workpieces { get; set; } = new List<Workpiece>();
+        public List<Workpiece1D> Workpieces { get; set; } = new List<Workpiece1D>();
         public double TotalPercentUsage { get; set; }
     }
-    public class Workpiece
+    public class Workpiece1D
     {
         public int Length { get; set; }
         public List<int> Details { get; set; }

@@ -2,7 +2,7 @@
 
 namespace vega.Controllers.DTO
 {
-    public class DetailOneDivisionDTO
+    public class Detail1DDTO
     {
         [Name("Length")]
         [Index(0)]

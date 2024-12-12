@@ -44,13 +44,28 @@
             <response code="200">Calculeted is ok</response>
             <response code="500">Detail length > workpiece length</response>
         </member>
+        <member name="M:vega.Controllers.CuttingController.Calculate2DCutting(vega.Controllers.DTO.Calculate2DDTO)">
+            <summary>
+            Method for calculating optimal 2d cutting.
+            </summary>
+            <param name="dto"></param>
+            <returns>Returns the calculated model</returns>
+            <response code="200">Calculeted is ok</response>
+            <response code="500">Detail length > workpiece length</response>
+        </member>
         <member name="M:vega.Controllers.DetailController.GetDetails">
             <summary>
             Get all details
             </summary>
             <returns></returns>
         </member>
-        <member name="M:vega.Controllers.DetailController.CreateDetail(vega.Controllers.DTO.DetailDTO,Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:vega.Controllers.DetailController.GetDesignations">
+            <summary>
+            Get details' designations
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:vega.Controllers.DetailController.CreateDetail(vega.Controllers.DTO.DetailDTO)">
             <summary>
             Create new detail and generate png file
             </summary>
@@ -62,18 +77,30 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:vega.Controllers.FileController.ImportCsv(Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:vega.Controllers.DetailController.CreateWorkpiece(vega.Controllers.DTO.WorkpieceDTO)">
             <summary>
-            import csv file and formating him in json
+            Create new workpiece
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:vega.Controllers.DetailController.GetWorkpieces">
+            <summary>
+            Get all workpieces
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ImportCsv1D(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            1D import csv file and formating him in json
             </summary>
             <param name="file"></param>
             <returns>JSON file with details length and count</returns>
             <response code="200">Formatting is ok</response>
             <response code="400">Input file is null or Invalid file type. Please upload a CSV file</response>
         </member>
-        <member name="M:vega.Controllers.FileController.ExportCsv(System.Collections.Generic.List{vega.Controllers.DTO.DetailOneDivisionDTO})">
+        <member name="M:vega.Controllers.FileController.ExportCsv1D(System.Collections.Generic.List{vega.Controllers.DTO.Detail1DDTO})">
             <summary>
-            formating json to csv and export csv file
+            1D formating json to csv and export csv file
             </summary>
             <param name="file"></param>
             <returns>JSON file with details length and count</returns>
@@ -97,6 +124,36 @@
             download csv file result 1d cutting calculating
             </summary>
             <returns>pdf file</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ImportCsv2D(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            2D import csv file and formating him in json
+            </summary>
+            <param name="file"></param>
+            <returns>JSON file with details length and count</returns>
+            <response code="200">Formatting is ok</response>
+            <response code="400">Input file is null or Invalid file type. Please upload a CSV file</response>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportCsv2D(System.Collections.Generic.List{vega.Controllers.DTO.Detail2DDTO})">
+            <summary>
+            2D formating json to csv and export csv file
+            </summary>
+            <param name="file"></param>
+            <returns>JSON file with details length and count</returns>
+            <response code="200">Export is ok</response>
+            <response code="400">Details count = 0</response>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportPng(vega.Models.Cutting2DResult)">
+            <summary>
+            draw png scheme 2d cutting caltulating
+            </summary>
+            <returns>png scheme cutting</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportDxf(vega.Models.Cutting2DResult)">
+            <summary>
+            draw dxf 2d cutting caltulating
+            </summary>
+            <returns>png scheme cutting</returns>
         </member>
     </members>
 </doc>

@@ -7,5 +7,6 @@ namespace vega.Services.Interfaces
     {
         public Task<byte[]> DrawDXFAsync(List<FigureDTO> figures);
         public Task<byte[]> Draw1DCuttingAsync(Cutting1DResult result);
+        public Task<List<byte[]>> Draw2DCuttingAsync(Cutting2DResult result);
     }
 }
