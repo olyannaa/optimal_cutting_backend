@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using vega.Controllers.DTO;
 using vega.Migrations.DAL;
@@ -8,6 +10,7 @@ using vega.Services.Interfaces;
 namespace vega.Controllers
 {
     [Route("/api/[controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class DetailController : Controller
     {
         private readonly VegaContext _db;
@@ -78,7 +81,7 @@ namespace vega.Controllers
             var details = await _dxfService.GetDXFAsync(bytes);
             await _db.Figures.AddRangeAsync(details.Select(d => new Figure()
             {
-                Coordinates = d.Coorditanes,
+                Coordinates = d.Coordinates,
                 TypeId = d.TypeId,
                 FilenameId = detail.Id,
             }));

@@ -23,5 +23,7 @@ namespace vega.Migrations.DAL
         [Column("material_id")]
         public int MaterialId { get; set; }
 
+        public List<Figure> Figures { get; set; } = new List<Figure>();
+
     }
 }

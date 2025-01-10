@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Org.BouncyCastle.Crypto.Prng;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using vega.Controllers.DTO;
+using vega.Migrations.DAL;
 using vega.Migrations.EF;
 using vega.Models;
 using vega.Services.Interfaces;
@@ -8,6 +11,7 @@ using vega.Services.Interfaces;
 namespace vega.Controllers
 {
     [Route("/api")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class CuttingController : Controller
     {
         private readonly ICutting1DService _cutting1DService;
@@ -55,10 +59,34 @@ namespace vega.Controllers
                         X = 0,
                         Y = 0,
                     });
-            if (dto.WorkpieceId == null) return BadRequest("workpieceId is null");
-            var workpiece = _db.Workpieces.Find(dto.WorkpieceId);
-            if (workpiece == null) return BadRequest("workpiece is not found");
+            var workpiece = new Workpiece()
+            {
+                Width = dto.Workpiece.Width,
+                Height = dto.Workpiece.Height,
+            };
             var res = await _cutting2DService.CalculateCuttingAsync(details, workpiece, dto.CuttingThickness);
+            return Ok(res);
+        }
+
+        /// <summary>
+        /// Method for calculating optimal 2d cutting with dxf
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns>Returns the calculated model</returns>
+        /// <response code="200">Calculeted is ok</response>
+        /// <response code="500">Detail length > workpiece length</response>
+        [HttpPost]
+        [Route("dxf/calculate")]
+        public async Task<ActionResult> Calculate2DCuttingWithDXF([FromBody] Calculate2DDXFDTO dto)
+        {
+            //Get details from DB and calculate sizes (width, height)
+            var details = dto.DetailsId
+                .Select(d => _db.Filenames.Include(f => f.Figures).FirstOrDefault(f => f.Id == d))
+                .Select(d => new Detail2D(d.Figures))
+                .ToList();
+            var workpiece = new Workpiece() { Height = dto.Workpiece.Height, Width = dto.Workpiece.Width };
+            var res = await _cutting2DService.CalculateCuttingAsync(details, workpiece, dto.CuttingThickness);
+
             return Ok(res);
         }
     }

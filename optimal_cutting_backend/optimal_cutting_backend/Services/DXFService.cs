@@ -6,6 +6,7 @@ using netDxf.IO;
 using SkiaSharp;
 using System.Text;
 using vega.Controllers.DTO;
+using vega.Migrations.DAL;
 using vega.Models;
 using vega.Services.Interfaces;
 
@@ -38,25 +39,25 @@ namespace vega.Services
 
         }
 
-        public async Task<List<FigureDTO>> GetDXFAsync(byte[] fileBytes)
+        public async Task<List<Figure>> GetDXFAsync(byte[] fileBytes)
         {
-            var ans = new List<FigureDTO>();
+            var ans = new List<Figure>();
             using var stream = new MemoryStream(fileBytes);
             var dxf = DxfDocument.Load(stream);
             foreach (var obj in dxf.Entities.All)
             {
                 if (obj is Line line)
-                    ans.Add(new FigureDTO { TypeId = 1, Coorditanes = $"{line.StartPoint.X}; {line.StartPoint.Y}; {line.EndPoint.X}; {line.EndPoint.Y}" });
+                    ans.Add(new Figure { TypeId = 1, Coordinates = $"{line.StartPoint.X}; {line.StartPoint.Y}; {line.EndPoint.X}; {line.EndPoint.Y}" });
                 if (obj is Circle circle)
-                    ans.Add(new FigureDTO { TypeId = 2, Coorditanes = $"{circle.Center.X}; {circle.Center.Y}; {circle.Radius}" });
+                    ans.Add(new Figure { TypeId = 2, Coordinates = $"{circle.Center.X}; {circle.Center.Y}; {circle.Radius}" });
                 if (obj is Arc arc)
-                    ans.Add(new FigureDTO { TypeId = 3, Coorditanes = $"{arc.Center.X}; {arc.Center.Y}; {arc.Radius}; {arc.StartAngle}; {arc.EndAngle}" });
+                    ans.Add(new Figure { TypeId = 3, Coordinates = $"{arc.Center.X}; {arc.Center.Y}; {arc.Radius}; {arc.StartAngle}; {arc.EndAngle}" });
                 if(obj is Spline spline)
                 {
                     var coordinates = new StringBuilder();
                     foreach (var item in spline.ControlPoints)
                         coordinates.Append($"{item.ToString()}/");
-                    ans.Add(new FigureDTO { TypeId = 4, Coorditanes = coordinates.ToString() });
+                    ans.Add(new Figure { TypeId = 4, Coordinates = coordinates.ToString() });
                 }
                     
             }

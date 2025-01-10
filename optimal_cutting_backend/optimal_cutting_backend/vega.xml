@@ -53,6 +53,15 @@
             <response code="200">Calculeted is ok</response>
             <response code="500">Detail length > workpiece length</response>
         </member>
+        <member name="M:vega.Controllers.CuttingController.Calculate2DCuttingWithDXF(vega.Controllers.DTO.Calculate2DDXFDTO)">
+            <summary>
+            Method for calculating optimal 2d cutting with dxf
+            </summary>
+            <param name="dto"></param>
+            <returns>Returns the calculated model</returns>
+            <response code="200">Calculeted is ok</response>
+            <response code="500">Detail length > workpiece length</response>
+        </member>
         <member name="M:vega.Controllers.DetailController.GetDetails">
             <summary>
             Get all details
@@ -154,6 +163,46 @@
             draw dxf 2d cutting caltulating
             </summary>
             <returns>png scheme cutting</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.Export2DPdf(vega.Models.Cutting2DResult)">
+            <summary>
+            download pdf scheme 2d cutting calculating
+            </summary>
+            <returns>pdf file</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportDXFPng(vega.Models.Cutting2DResult)">
+            <summary>
+            draw png scheme dxf cutting caltulating
+            </summary>
+            <returns>png scheme cutting</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportDxfPdf(vega.Models.Cutting2DResult)">
+            <summary>
+            download pdf scheme dxf cutting calculating
+            </summary>
+            <returns>pdf file</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportDxfFile(vega.Models.Cutting2DResult)">
+            <summary>
+            draw dxf file dxf cutting caltulating
+            </summary>
+            <returns>png scheme cutting</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ImportCsvDXF(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            DXF import csv file and formating him in json
+            </summary>
+            <param name="file"></param>
+            <returns>JSON file with details ids and count</returns>
+        </member>
+        <member name="M:vega.Controllers.FileController.ExportCsvDXF(System.Collections.Generic.List{vega.Controllers.DTO.DetailDxfDTO})">
+            <summary>
+            DXF formating json to csv and export csv file
+            </summary>
+            <param name="file"></param>
+            <returns>JSON file with details id  and count</returns>
+            <response code="200">Export is ok</response>
+            <response code="400">Details count = 0</response>
         </member>
     </members>
 </doc>

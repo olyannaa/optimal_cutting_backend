@@ -1,6 +1,7 @@
 ﻿
 using SkiaSharp;
 using vega.Controllers.DTO;
+using vega.Migrations.DAL;
 using vega.Models;
 using vega.Services.Interfaces;
 
@@ -8,87 +9,8 @@ namespace vega.Services
 {
     public class DrawService : IDrawService
     {
+        public static int Indent = 10;
         public List<SKColor> Colors = new List<SKColor> { new SKColor(175, 244, 158), new SKColor(128, 241, 205), new SKColor(124, 232, 237), new SKColor(158, 219, 244), new SKColor(152, 206, 255), new SKColor(180, 186, 255), new SKColor(227, 158, 244), new SKColor(255, 157, 203), new SKColor(255, 167, 172), new SKColor(244, 183, 158) };
-        
-        public async Task<byte[]> DrawDXFAsync(List<FigureDTO> figures)
-        {
-            var maxX = figures.Max(f => float.Parse(f.Coorditanes.Split(';')[0]));
-            var maxY = figures.Max(f => float.Parse(f.Coorditanes.Split(';')[1]));
-            var minX = figures.Min(f => float.Parse(f.Coorditanes.Split(';')[0]));
-            var minY = figures.Min(f => float.Parse(f.Coorditanes.Split(';')[1]));
-            var width = (int)((Math.Abs(minX) + maxX) * 1.2);
-            var height = (int)((Math.Abs(minY) + maxY) * 1.2);
-            var mainCenterX = (int)((minX + maxX) / 2);
-            var mainCenterY = (int)((minY + maxY) / 2);
-
-            var bitmap = new SKBitmap(width, height);
-            var canvas = new SKCanvas(bitmap);
-
-            var blackPaint = new SKPaint();
-            blackPaint.Color = SKColors.Black;
-
-            var whitePaint = new SKPaint();
-            whitePaint.Color = SKColors.White;
-            whitePaint.Style = SKPaintStyle.Stroke;
-
-            canvas.Clear(SKColors.Black);
-
-            foreach (var figure in figures)
-            {
-                //line
-                if (figure.TypeId == 1)
-                {
-                    var coorditanes = figure.Coorditanes.Split(';');
-                    var startX = NormalizeXCoordinate(width, mainCenterX, coorditanes[0]);
-                    var startY = NormalizeYCoordinate(height, mainCenterY, coorditanes[1]);
-                    var endX = NormalizeXCoordinate(width, mainCenterX, coorditanes[2]);
-                    var endY = NormalizeYCoordinate(height, mainCenterY, coorditanes[3]);
-                    canvas.DrawLine(new SKPoint(startX, startY), new SKPoint(endX, endY), whitePaint);
-                }
-                //circle
-                if (figure.TypeId == 2)
-                {
-                    var coorditanes = figure.Coorditanes.Split(';');
-                    var centerX = NormalizeXCoordinate(width, mainCenterX, coorditanes[0]);
-                    var centerY = NormalizeYCoordinate(height, mainCenterY, coorditanes[1]);
-                    var radius = float.Parse(coorditanes[2]);
-                    canvas.DrawCircle(centerX, centerY, radius, whitePaint);
-                    canvas.DrawCircle(centerX, centerY, radius - 1, blackPaint);
-                }
-                //arc
-                if (figure.TypeId == 3)
-                {
-                    var coorditanes = figure.Coorditanes.Split(';');
-                    var centerX = NormalizeXCoordinate(width, mainCenterX, coorditanes[0]);
-                    var centerY = NormalizeYCoordinate(height, mainCenterY, coorditanes[1]);
-                    var radius = float.Parse(coorditanes[2]);
-                    var startAngle = float.Parse(coorditanes[3]);
-                    var endAngle = float.Parse(coorditanes[4]);
-                    canvas.DrawArc(new SKRect(centerX - radius,
-                        centerY - radius,
-                        centerX + radius,
-                        centerY + radius), startAngle, Math.Abs(endAngle + 360 - startAngle) % 360, false, whitePaint);
-                }
-                //Spline
-                if (figure.TypeId == 4)
-                {
-                    var coorditanes = figure.Coorditanes.Split('/');
-                    for (var i = 0; i < coorditanes.Length - 2; i++)
-                    {
-                        var startX = NormalizeXCoordinate(width, mainCenterX, coorditanes[i].Split(';')[0]);
-                        var startY = NormalizeYCoordinate(height, mainCenterY, coorditanes[i].Split(';')[1]);
-
-                        var finishX = NormalizeXCoordinate(width, mainCenterX, coorditanes[i + 1].Split(';')[0]);
-                        var finishY = NormalizeYCoordinate(height, mainCenterY, coorditanes[i + 1].Split(';')[1]);
-                        canvas.DrawLine(new SKPoint(startX, startY), new SKPoint(finishX, finishY), whitePaint);
-                    }
-                }
-            }
-
-            var rotatedBitmap = RotateImage(bitmap);
-            var image = SKImage.FromBitmap(rotatedBitmap);
-            return image.Encode().ToArray();
-        }
 
         public async Task<byte[]> Draw1DCuttingAsync(Cutting1DResult result)
         {
@@ -142,8 +64,6 @@ namespace vega.Services
             var images = new List<byte[]>();
             var detailColorsDict = new Dictionary<int, SKColor>();
 
-            var indent = 10;
-
             var width = result.Workpiece.Width;
             var height = result.Workpiece.Height;
 
@@ -180,26 +100,154 @@ namespace vega.Services
             return images;
         }
 
-        private float NormalizeXCoordinate(int width, int centerX, string x)
+        public async Task<byte[]> DrawDXFAsync(List<Figure> figures)
         {
-            return width / 2 - centerX + float.Parse(x);
+            var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0]));
+            var maxY = figures.Max(f => float.Parse(f.Coordinates.Split(';')[1]));
+            var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0]));
+            var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1]));
+            var width = (int)((Math.Abs(minX) + maxX) * 1.2);
+            var height = (int)((Math.Abs(minY) + maxY) * 1.2);
+            var mainCenterX = (int)((minX + maxX) / 2);
+            var mainCenterY = (int)((minY + maxY) / 2);
+
+            var bitmap = new SKBitmap(width, height);
+            var canvas = new SKCanvas(bitmap);
+            
+
+            canvas.Clear(SKColors.Black);
+            foreach (var figure in figures)
+                DrawFigure(figure, canvas, width, height, mainCenterX, mainCenterY);
+
+            var rotatedBitmap = RotateImage(bitmap);
+            var image = SKImage.FromBitmap(rotatedBitmap);
+            return image.Encode().ToArray();
         }
-        private float NormalizeYCoordinate(int height, int centerY, string y)
+
+        public async Task<List<byte[]>> DrawDXFCuttingAsync(Cutting2DResult result)
         {
-            return height / 2 - centerY + float.Parse(y);
+
+            var images = new List<byte[]>();
+            var detailColorsDict = new Dictionary<int, SKColor>();
+
+            var width = result.Workpiece.Width;
+            var height = result.Workpiece.Height;
+
+            var bitmap = new SKBitmap(width, height);
+            var canvas = new SKCanvas(bitmap);
+            canvas.Clear();
+
+            foreach (var workpiece in result.Details)
+            {
+                canvas.Clear(SKColors.Black);
+                foreach (var detail in workpiece)
+                {
+                    if (detail.Rotated) RotateFigures(detail.Figures);
+                    var center = GetDetailCenter(detail.Figures, detail.X, detail.Y);
+                    foreach (var figure in detail.Figures)
+                        DrawFigure(figure, canvas, detail.Width, detail.Height, (int)center.X, (int)center.Y);
+                }
+                images.Add(SKImage.FromBitmap(bitmap).Encode().ToArray());
+            }
+
+            return images;
         }
-        public SKBitmap RotateImage(SKBitmap bitmap)
+
+        private void DrawFigure(Figure figure, SKCanvas canvas, int width, int height, int detailCenterX, int detailCenterY, bool rotated = false)
+        {
+            var blackPaint = new SKPaint();
+            blackPaint.Color = SKColors.Black;
+
+            var whitePaint = new SKPaint();
+            whitePaint.Color = SKColors.White;
+            whitePaint.Style = SKPaintStyle.Stroke;
+            var coorditanes = figure.Coordinates.Split(';').Select(f => float.Parse(f)).ToList();
+            //line
+            if (figure.TypeId == 1)
+            {
+                var start = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coorditanes[0], coorditanes[1], rotated);
+                var end = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coorditanes[2], coorditanes[3], rotated);
+                canvas.DrawLine(new SKPoint(start.X, start.Y), new SKPoint(end.X, end.Y), whitePaint);
+            }
+            //circle
+            if (figure.TypeId == 2)
+            {
+                var center = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coorditanes[0], coorditanes[1], rotated);
+                var radius = coorditanes[2];
+                canvas.DrawCircle(center.X, center.Y, radius, whitePaint);
+                canvas.DrawCircle(center.X, center.Y, radius - 1, blackPaint);
+            }
+            //arc
+            if (figure.TypeId == 3)
+            {
+                var center = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coorditanes[0], coorditanes[1], rotated);
+                var radius = coorditanes[2];
+                var startAngle = coorditanes[3];
+                var endAngle = coorditanes[4];
+                if (rotated)
+                {
+                    startAngle += 90;
+                    endAngle += 90;
+                }
+                canvas.DrawArc(new SKRect(center.X - radius,
+                    center.Y - radius,
+                    center.X + radius,
+                    center.Y + radius), startAngle, Math.Abs(endAngle + 360 - startAngle) % 360, false, whitePaint);
+            }
+            //Spline
+            if (figure.TypeId == 4)
+            {
+                var coorditanesSpline = figure.Coordinates.Split('/');
+                for (var i = 0; i < coorditanesSpline.Length - 2; i++)
+                {
+                    var start = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, float.Parse(coorditanesSpline[i].Split(';')[0]), float.Parse(coorditanesSpline[i].Split(';')[1]), rotated);
+                    var finish = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, float.Parse(coorditanesSpline[i + 1].Split(';')[0]), float.Parse(coorditanesSpline[i + 1].Split(';')[1]), rotated);
+                    canvas.DrawLine(new SKPoint(start.X, start.Y), new SKPoint(finish.X, finish.Y), whitePaint);
+                }
+            }
+        }
+
+        private Point NormalizeCoordinates(int width, int height, int centerX, int centerY, float x, float y, bool rotated = false)
+        {
+            if (rotated) (x, y) = (-y, x);
+            return new Point((width / 2 - centerX + x), (height / 2 - centerY + y));
+        }
+        
+        private SKBitmap RotateImage(SKBitmap bitmap)
         {
             var rotatedBitmap = new SKBitmap(bitmap.Width, bitmap.Height);
             using (SKCanvas canvas = new SKCanvas(rotatedBitmap))
             {
                 canvas.RotateDegrees(180, bitmap.Width / 2, bitmap.Height / 2);
                 canvas.Scale(-1, 1, bitmap.Width / 2.0f, 0);
-
                 canvas.DrawBitmap(bitmap, 0, 0);
             }
             return rotatedBitmap;
         }
 
+        private void RotateFigures(List<Figure> figures)
+        {
+            for(var i = 0; i < figures.Count; i++)
+            {
+                var coordinates = figures[i].Coordinates.Split(';').Select(c => float.Parse(c)).ToList();
+                (coordinates[0], coordinates[1]) = (-coordinates[1], coordinates[0]);
+                if (figures[i].TypeId == 1) (coordinates[2], coordinates[3]) = (-coordinates[3], coordinates[2]);
+                if (figures[i].TypeId == 3) (coordinates[3], coordinates[4]) = (coordinates[3]+90, coordinates[4]+90);
+                figures[i].Coordinates = String.Join(';', coordinates);
+            }
+        }
+
+        private Point GetDetailCenter(List<Figure> figures, float detailX = 0, float detailY = 0)
+        {
+            var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0]));
+            var maxY = figures.Max(f => float.Parse(f.Coordinates.Split(';')[1]));
+            var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0]));
+            var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1]));
+
+            var detailCenterX = (int)(((minX + maxX) / 2) - detailX);
+            var detailCenterY = (int)(((minY + maxY) / 2) - detailY);
+
+            return new Point(detailCenterX, detailCenterY);
+        }
     }
 }
