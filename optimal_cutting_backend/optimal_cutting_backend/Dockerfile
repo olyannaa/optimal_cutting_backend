@@ -12,7 +12,7 @@ RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /
 USER appuser
 
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-ARG configuration=Development
+ARG configuration=Release
 WORKDIR /src
 COPY ["optimal_cutting_backend/optimal_cutting_backend/vega.csproj", "optimal_cutting_backend/optimal_cutting_backend/"]
 RUN dotnet restore "optimal_cutting_backend/optimal_cutting_backend/vega.csproj"
