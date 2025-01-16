@@ -1,4 +1,5 @@
 ﻿
+using System.Globalization;
 using SkiaSharp;
 using vega.Controllers.DTO;
 using vega.Migrations.DAL;
@@ -64,8 +65,8 @@ namespace vega.Services
             var images = new List<byte[]>();
             var detailColorsDict = new Dictionary<int, SKColor>();
 
-            var width = result.Workpiece.Width;
-            var height = result.Workpiece.Height;
+            var width = result.Workpieces[0].Width;
+            var height = result.Workpieces[0].Height;
 
             var bitmap = new SKBitmap(width, height);
             var canvas = new SKCanvas(bitmap);
@@ -78,10 +79,10 @@ namespace vega.Services
             blackPaint.Color = SKColors.Black;
             textPaint.Color = SKColors.Black;
             textPaint.TextSize = 14;
-            foreach (var workpiece in result.Details)
+            foreach (var workpiece in result.Workpieces)
             {
                 canvas.Clear(SKColors.White);
-                foreach (var detail in workpiece)
+                foreach (var detail in workpiece.Details)
                 {
                     var key = detail.Width * detail.Height;
                     var rnd = new Random();
@@ -130,17 +131,17 @@ namespace vega.Services
             var images = new List<byte[]>();
             var detailColorsDict = new Dictionary<int, SKColor>();
 
-            var width = result.Workpiece.Width;
-            var height = result.Workpiece.Height;
+            var width = result.Workpieces[0].Width;
+            var height = result.Workpieces[0].Height;
 
             var bitmap = new SKBitmap(width, height);
             var canvas = new SKCanvas(bitmap);
             canvas.Clear();
 
-            foreach (var workpiece in result.Details)
+            foreach (var workpiece in result.Workpieces)
             {
                 canvas.Clear(SKColors.Black);
-                foreach (var detail in workpiece)
+                foreach (var detail in workpiece.Details)
                 {
                     if (detail.Rotated) RotateFigures(detail.Figures);
                     var center = GetDetailCenter(detail.Figures, detail.X, detail.Y);
@@ -161,7 +162,9 @@ namespace vega.Services
             var whitePaint = new SKPaint();
             whitePaint.Color = SKColors.White;
             whitePaint.Style = SKPaintStyle.Stroke;
-            var coorditanes = figure.Coordinates.Split(';').Select(f => float.Parse(f)).ToList();
+            var coorditanes = figure.Coordinates.Split(';')
+                                                .Select(f => float.Parse(f, new CultureInfo("ru-RU")))
+                                                .ToList();
             //line
             if (figure.TypeId == 1)
             {
@@ -239,10 +242,10 @@ namespace vega.Services
 
         private Point GetDetailCenter(List<Figure> figures, float detailX = 0, float detailY = 0)
         {
-            var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0]));
-            var maxY = figures.Max(f => float.Parse(f.Coordinates.Split(';')[1]));
-            var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0]));
-            var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1]));
+            var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
+            var maxY = figures.Max(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
+            var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
+            var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
 
             var detailCenterX = (int)(((minX + maxX) / 2) - detailX);
             var detailCenterY = (int)(((minY + maxY) / 2) - detailY);

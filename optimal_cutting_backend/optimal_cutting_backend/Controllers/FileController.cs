@@ -1,4 +1,4 @@
-﻿using iTextSharp.text;
+using iTextSharp.text;
 using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +8,6 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using vega.Controllers.DTO;
-using vega.Migrations.DAL;
 using vega.Migrations.EF;
 using vega.Models;
 using vega.Services.Interfaces;
@@ -284,14 +283,14 @@ namespace vega.Controllers
         }
 
         /// <summary>
-        /// draw dxf file dxf cutting caltulating
+        /// draw dxf file for dxf cutting caltulating
         /// </summary>
         /// <returns>png scheme cutting</returns>
         [HttpPost]
         [Route("dxf/export/result/dxf")]
         public async Task<IActionResult> ExportDxfFile([FromBody] Cutting2DResult dto)
         {
-            var dxfBytes = await _dxfService.Create2DDXFAsync(dto);
+            var dxfBytes = await _dxfService.CreateDXFAsync(dto);
             using (var ms = new MemoryStream())
             {
                 using (var zipArchive = new ZipArchive(ms, ZipArchiveMode.Create, true))
@@ -308,7 +307,6 @@ namespace vega.Controllers
                 return File(ms.ToArray(), "application/zip", "Заготовки DXF");
             }
         }
-
         /// <summary>
         /// DXF import csv file and formating him in json
         /// </summary>
@@ -321,7 +319,6 @@ namespace vega.Controllers
             if (file == null) return StatusCode(400);
             if (!IsFileExtensionAllowed(file, new string[] { ".csv" })) return StatusCode(400);
             var details = _csvService.ReadCSV<DetailDxfDTO>(file.OpenReadStream()).ToList();
-
             foreach (var detail in details)
                 if (!_db.Filenames.Any(f => f.Id == detail.Id)) return StatusCode(400);
             return Ok(details);

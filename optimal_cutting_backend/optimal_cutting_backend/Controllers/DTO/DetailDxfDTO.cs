@@ -13,5 +13,11 @@ namespace vega.Controllers.DTO
         [Name("Count")]
         [Index(2)]
         public int Count { get; set; }
+        [Name("MaterialId")]
+        [Index(3)]
+        public int MaterialId { get; set; }
+        [Name("Thickness")]
+        [Index(4)]
+        public int Thickness { get; set; }
     }
 }

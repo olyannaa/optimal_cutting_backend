@@ -10,20 +10,22 @@ namespace vega.Services
     public class Cutting2DService : ICutting2DService
     {
         //Отступы от краёв заготовки
-        public int Indent = 0;
+        public int Indent = 10;
         public async Task<Cutting2DResult> CalculateCuttingAsync(List<Detail2D> details, Workpiece workpiece, float thickness)
         {
             if (details.Max(d => d.Width) > workpiece.Width || details.Max(d => d.Height) > Math.Max(workpiece.Height, workpiece.Width)) throw new Exception("detail > workpiece");
             details = details.OrderByDescending(d => d.Height * d.Width).ToList();
             if (workpiece.Height > workpiece.Width)
                 (workpiece.Width, workpiece.Height) = (workpiece.Height, workpiece.Width);
-            var workpieces = new List<List<Detail2D>>();
+            var workpieces = new List<Workpiece2D>();
             while(details.Count > 0)
                 workpieces.Add(CalculateCuttingForWorkpiece(details, workpiece, thickness));
-                
-            return new Cutting2DResult() { Details = workpieces, Workpiece = new Workpiece2D { Width = workpiece.Width, Height = workpiece.Height} };
+            
+            var result = new Cutting2DResult() {Workpieces = workpieces, TotalPercentUsage = Math.Round(workpieces.Sum(w=>w.ProcentUsage) / workpieces.Count,2)};
+
+            return result;
         }
-        public List<Detail2D> CalculateCuttingForWorkpiece(List<Detail2D> details, Workpiece workpiece, float thickness)
+        public Workpiece2D CalculateCuttingForWorkpiece(List<Detail2D> details, Workpiece workpiece, float thickness)
         {
             var result = new List<Detail2D>();
             workpiece.Width -= 2 * Indent;
@@ -32,6 +34,7 @@ namespace vega.Services
             arr = arr.Select(x => new byte[workpiece.Height]).ToArray();
             int currX = 0, currY = 0;
             var minSize = Math.Min(details.Min(d => d.Height), details.Min(d => d.Width));
+            var detailsSizes = 0;
             while(details.Count > 0)
             {
                 var detailNumber = 0;
@@ -61,6 +64,7 @@ namespace vega.Services
                         if (CanAddDetail(arr, detail, currX, currY))
                         {
                             AddDetail(arr, detail, currX, currY);
+                            detailsSizes += detail.Width * detail.Height;
                             result.Add(detail);
                             details.RemoveAt(detailNumber);
                             if (details.Count > 0)
@@ -88,9 +92,12 @@ namespace vega.Services
                 x.Y += Indent;
                 return x;
             }).ToList();
+            var procentUsage = Math.Round((double)detailsSizes / (workpiece.Height * workpiece.Width), 2);
             workpiece.Width += 2 * Indent;
             workpiece.Height += 2 * Indent;
-            return result;
+            var resultWorkpiece = new Workpiece2D { Details = result, Width = workpiece.Width, Height = workpiece.Height };
+            resultWorkpiece.ProcentUsage = procentUsage;
+            return resultWorkpiece;
         }
 
         public Detail2D DetailLeft(List<Detail2D> details, int x, int y, int height)

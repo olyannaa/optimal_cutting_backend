@@ -184,7 +184,7 @@
         </member>
         <member name="M:vega.Controllers.FileController.ExportDxfFile(vega.Models.Cutting2DResult)">
             <summary>
-            draw dxf file dxf cutting caltulating
+            draw dxf file for dxf cutting caltulating
             </summary>
             <returns>png scheme cutting</returns>
         </member>

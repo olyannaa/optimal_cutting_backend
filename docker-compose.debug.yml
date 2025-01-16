@@ -3,17 +3,48 @@
 version: '3.4'
 
 services:
-  vega:
-    image: vega
+  vega-nginx:
+    image: nginx:alpine
+    container_name: vega-nginx
+    volumes:
+      - ./optimal_cutting_backend/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./optimal_cutting_backend/nginx/certs/domain.crt:/etc/nginx/domain.crt
+      - ./optimal_cutting_backend/nginx/certs/domain.key:/etc/nginx/domain.key
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    depends_on:
+      - vega-asp
+ 
+
+  vega-redis:
+    image: redis:alpine
+    container_name: vega-redis
+    restart: always
+    volumes:
+      - ./optimal_cutting_backend/redis/.redisdata:/data
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+      '
+
+  vega-asp:
+    container_name: vega-asp
     build:
       context: .
       dockerfile: optimal_cutting_backend/optimal_cutting_backend/Dockerfile
-      args:
-        - configuration=Debug
-    ports:
-      - 5000:5000
-      - 5001:5001
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+        - ASPNETCORE_ENVIRONMENT=Development
+        - ASPNETCORE_URLS=http://+:5000;
     volumes:
+      - ~/.aspnet/https:/https:ro
       - ~/.vsdbg:/remote_debugger:rw
+    restart: always
+    depends_on:
+      - vega-redis

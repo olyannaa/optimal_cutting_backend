@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,12 +17,14 @@ namespace vega.Controllers
         private readonly VegaContext _db;
         private readonly IDXFService _dxfService;
         private readonly IDrawService _drawService;
+        private readonly IHttpContextAccessor _accessor;
 
-        public DetailController(VegaContext db, IDXFService dXFService, IDrawService drawService)
+        public DetailController(VegaContext db, IDXFService dXFService, IDrawService drawService, IHttpContextAccessor accessor)
         {
             _db = db;
             _dxfService = dXFService;
             _drawService = drawService;
+            _accessor = accessor;
         }
 
 
@@ -62,6 +65,9 @@ namespace vega.Controllers
         {
             var filename = _db.Filenames.FirstOrDefault(x => x.Designation == dto.Designation);
             if (filename != null) return BadRequest("detail with this designation is found");
+
+            var userId = Int32.Parse(_accessor.HttpContext.User.Claims.First(x => x.Type == ClaimTypes.Sid).Value);
+
             var detail = new Filename
             {
                 Name = dto.Name,
@@ -69,7 +75,7 @@ namespace vega.Controllers
                 Thickness = dto.Thickness,
                 FileName = dto.Filename,
                 MaterialId = dto.MaterialId,
-                UserId = dto.UserId,
+                UserId = userId,
             };
             if (dto.File.Length == 0) return BadRequest("file is null");
             await _db.Filenames.AddAsync(detail);
