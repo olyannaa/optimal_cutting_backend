@@ -4,6 +4,7 @@ using netDxf.Entities;
 using netDxf.Header;
 using netDxf.IO;
 using SkiaSharp;
+using System.Globalization;
 using System.Text;
 using vega.Controllers.DTO;
 using vega.Migrations.DAL;
@@ -48,7 +49,7 @@ namespace vega.Services
                 {
                     foreach (var figure in detail.Figures)
                     {
-                        var coorditanes = figure.Coordinates.Split(';').Select(f => float.Parse(f)).ToList();
+                        var coorditanes = figure.Coordinates.Split(';').Select(f => float.Parse(f, new CultureInfo("ru-RU"))).ToList();
                         var sizes = new Vector2(detail.Width / 2, -detail.Height / 2);
                         var center = GetDetailCenter(detail.Figures);
                         if (figure.TypeId == 1)
@@ -132,10 +133,10 @@ namespace vega.Services
         }
         private Vector2 GetDetailCenter(List<Figure> figures, float detailX = 0, float detailY = 0)
         {
-            var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0]));
-            var maxY = figures.Max(f => float.Parse(f.Coordinates.Split(';')[1]));
-            var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0]));
-            var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1]));
+            var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
+            var maxY = figures.Max(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
+            var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
+            var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
 
             var detailCenterX = (int)(((minX + maxX) / 2) + detailX);
             var detailCenterY = (int)(((minY + maxY) / 2) + detailY);

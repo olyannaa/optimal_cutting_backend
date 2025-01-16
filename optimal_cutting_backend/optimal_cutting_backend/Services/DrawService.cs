@@ -162,31 +162,31 @@ namespace vega.Services
             var whitePaint = new SKPaint();
             whitePaint.Color = SKColors.White;
             whitePaint.Style = SKPaintStyle.Stroke;
-            var coorditanes = figure.Coordinates.Split(';')
+            var coordinates = figure.Coordinates.Split(';')
                                                 .Select(f => float.Parse(f, new CultureInfo("ru-RU")))
                                                 .ToList();
             //line
             if (figure.TypeId == 1)
             {
-                var start = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coorditanes[0], coorditanes[1], rotated);
-                var end = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coorditanes[2], coorditanes[3], rotated);
+                var start = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coordinates[0], coordinates[1], rotated);
+                var end = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coordinates[2], coordinates[3], rotated);
                 canvas.DrawLine(new SKPoint(start.X, start.Y), new SKPoint(end.X, end.Y), whitePaint);
             }
             //circle
             if (figure.TypeId == 2)
             {
-                var center = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coorditanes[0], coorditanes[1], rotated);
-                var radius = coorditanes[2];
+                var center = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coordinates[0], coordinates[1], rotated);
+                var radius = coordinates[2];
                 canvas.DrawCircle(center.X, center.Y, radius, whitePaint);
                 canvas.DrawCircle(center.X, center.Y, radius - 1, blackPaint);
             }
             //arc
             if (figure.TypeId == 3)
             {
-                var center = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coorditanes[0], coorditanes[1], rotated);
-                var radius = coorditanes[2];
-                var startAngle = coorditanes[3];
-                var endAngle = coorditanes[4];
+                var center = NormalizeCoordinates(width, height, detailCenterX, detailCenterY, coordinates[0], coordinates[1], rotated);
+                var radius = coordinates[2];
+                var startAngle = coordinates[3];
+                var endAngle = coordinates[4];
                 if (rotated)
                 {
                     startAngle += 90;

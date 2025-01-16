@@ -1,4 +1,5 @@
-﻿using vega.Migrations.DAL;
+﻿using System.Globalization;
+using vega.Migrations.DAL;
 
 namespace vega.Models
 {
@@ -30,10 +31,18 @@ namespace vega.Models
                 var coorditanes = figure.Coordinates.Split(';');
                 if (figure.TypeId == 1) //line
                 {
-                    var figureMaxX = Math.Max(float.Parse(coorditanes[0]), float.Parse(coorditanes[2]));
-                    var figureMinX = Math.Min(float.Parse(coorditanes[0]), float.Parse(coorditanes[2]));
-                    var figureMaxY = Math.Max(float.Parse(coorditanes[1]), float.Parse(coorditanes[3]));
-                    var figureMinY = Math.Min(float.Parse(coorditanes[1]), float.Parse(coorditanes[3]));
+                    var figureMaxX = Math.Max(
+                        float.Parse(coorditanes[0], new CultureInfo("ru-RU")),
+                        float.Parse(coorditanes[2], new CultureInfo("ru-RU")));
+                    var figureMinX = Math.Min(
+                        float.Parse(coorditanes[0], new CultureInfo("ru-RU")),
+                        float.Parse(coorditanes[2], new CultureInfo("ru-RU")));
+                    var figureMaxY = Math.Max(
+                        float.Parse(coorditanes[1], new CultureInfo("ru-RU")),
+                        float.Parse(coorditanes[3], new CultureInfo("ru-RU")));
+                    var figureMinY = Math.Min(
+                        float.Parse(coorditanes[1], new CultureInfo("ru-RU")),
+                        float.Parse(coorditanes[3], new CultureInfo("ru-RU")));
                     maxX = Math.Max(maxX, figureMaxX);
                     minX = Math.Min(minX, figureMinX);
                     maxY = Math.Max(maxY, figureMaxY);
@@ -41,9 +50,9 @@ namespace vega.Models
                 }
                 else if (figure.TypeId == 2 || figure.TypeId == 3) //circle and arc
                 {
-                    var centerX = float.Parse(coorditanes[0]);
-                    var centerY = float.Parse(coorditanes[1]);
-                    var radius = float.Parse(coorditanes[2]);
+                    var centerX = float.Parse(coorditanes[0], new CultureInfo("ru-RU"));
+                    var centerY = float.Parse(coorditanes[1], new CultureInfo("ru-RU"));
+                    var radius = float.Parse(coorditanes[2], new CultureInfo("ru-RU"));
                     maxX = Math.Max(centerX + radius, maxX);
                     minX = Math.Min(centerX - radius, minX);
                     maxY = Math.Max(centerY + radius, maxY);
@@ -55,8 +64,8 @@ namespace vega.Models
                     for (var i = 0; i < coorditanes.Length - 1; i++)
                     {
                         var point = coorditanes[i].Split(';');
-                        var pointX = float.Parse(point[0]);
-                        var pointY = float.Parse(point[1]);
+                        var pointX = float.Parse(point[0], new CultureInfo("ru-RU"));
+                        var pointY = float.Parse(point[1], new CultureInfo("ru-RU"));
                         maxX = Math.Max(maxX, pointX);
                         minX = Math.Min(minX, pointX);
                         maxY = Math.Max(maxY, pointY);
