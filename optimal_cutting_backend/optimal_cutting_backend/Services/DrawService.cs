@@ -103,10 +103,10 @@ namespace vega.Services
 
         public async Task<byte[]> DrawDXFAsync(List<Figure> figures)
         {
-            var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0]));
-            var maxY = figures.Max(f => float.Parse(f.Coordinates.Split(';')[1]));
-            var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0]));
-            var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1]));
+            var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
+            var maxY = figures.Max(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
+            var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
+            var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
             var width = (int)((Math.Abs(minX) + maxX) * 1.2);
             var height = (int)((Math.Abs(minY) + maxY) * 1.2);
             var mainCenterX = (int)((minX + maxX) / 2);
