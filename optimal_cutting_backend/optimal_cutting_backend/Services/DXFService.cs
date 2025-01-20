@@ -129,6 +129,10 @@ namespace vega.Services
                 }
                     
             }
+            foreach (var fig in ans)
+            {
+                fig.Coordinates = fig.Coordinates.Replace(".", ",");
+            }
             return ans;
         }
         private Vector2 GetDetailCenter(List<Figure> figures, float detailX = 0, float detailY = 0)

@@ -97,7 +97,6 @@ namespace vega.Controllers
         /// <response code="403">Refresh has expired or not associated with user's access</response>
         [HttpPost]
         [Route("refresh-token")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public IActionResult RefreshAccessToken([FromForm] string refreshToken)
         {
             if(_tokenManager.RefreshToken(out var accessToken, refreshToken))
