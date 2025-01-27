@@ -239,7 +239,7 @@ namespace vega.Services
                 (coordinates[0], coordinates[1]) = (-coordinates[1], coordinates[0]);
                 if (figures[i].TypeId == 1) (coordinates[2], coordinates[3]) = (-coordinates[3], coordinates[2]);
                 if (figures[i].TypeId == 3) (coordinates[3], coordinates[4]) = (coordinates[3]+90, coordinates[4]+90);
-                figures[i].Coordinates = String.Join(';', coordinates);
+                figures[i].Coordinates = String.Join(';', coordinates).Replace(".", ","); // Culture fix
             }
         }
 
