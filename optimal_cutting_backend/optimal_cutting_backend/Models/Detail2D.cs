@@ -18,6 +18,11 @@ namespace vega.Models
         {
             Figures = figures;
             GetSize();
+            if (Width > Height)
+            {
+                Rotate();
+                Rotated = true;
+            }
         }
         private void GetSize()
         {
@@ -77,5 +82,7 @@ namespace vega.Models
             this.Width = (int)(Math.Abs(minX) + maxX);
             this.Height = (int)(Math.Abs(minY) + maxY);
         }
+        
+        public void Rotate() => (Width, Height) = (Height, Width);
     }
 }

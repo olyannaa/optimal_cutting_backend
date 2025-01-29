@@ -54,7 +54,7 @@ namespace vega.Services
                         if (leftDetail != null) 
                         {
                             detail.X = (leftDetail.X + leftDetail.Width) + thickness;
-                            currX = (int)detail.X;
+                            currX = (int) detail.X;
                         }  
                         else detail.X = currX;
 
@@ -125,10 +125,12 @@ namespace vega.Services
         public bool CanAddDetail(byte[][] arr, Detail2D detail, int x, int y)
         {
             if (x < 0 || y < 0) return false;
-            if (x + detail.Width >= arr.Length || detail.X + detail.Width >= arr.Length) return false;
-            if (y + detail.Height >= arr[0].Length || detail.Y + detail.Height >= arr[0].Length) return false;
-            for (int i = 0; i < detail.Width; i++)
-                if (arr[x + i][y] == 1) return false;
+            if (x + detail.Width >= arr.Length) return false;
+            if (y + detail.Height >= arr[0].Length) return false;
+            var z = 0;
+            if (detail.X - x > 0 && detail.X > 0) z++;
+            for (var i = z; i < detail.Width - 1; i++)
+                if (arr[x + i][y] > 0) return false;
             return true;
         }
 
@@ -138,6 +140,7 @@ namespace vega.Services
                 if (arr[i][y] == 0) return i;
             return -1;
         }
+
         public void AddDetail(byte[][] arr, Detail2D detail, int x, int y)
         {
             for (int i = 0; i < detail.Width; i++)

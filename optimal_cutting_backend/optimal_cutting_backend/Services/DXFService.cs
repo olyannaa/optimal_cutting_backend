@@ -142,8 +142,8 @@ namespace vega.Services
             var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
             var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
 
-            var detailCenterX = (int)(((minX + maxX) / 2) + detailX);
-            var detailCenterY = (int)(((minY + maxY) / 2) + detailY);
+            var detailCenterX = (((minX + maxX) / 2) + detailX);
+            var detailCenterY = (((minY + maxY) / 2) + detailY);
 
             return new Vector2(detailCenterX, detailCenterY);
         }
