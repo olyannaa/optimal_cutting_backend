@@ -34,6 +34,8 @@ namespace vega.Controllers
         [Route("1d/calculate")]
         public async Task<ActionResult> Calculate1DCutting([FromBody] Calculate1DDTO dto)
         {
+            if (dto.Details.Max() > dto.WorkpiecesLength.Max())
+                return BadRequest("detail length > workpiece length");
             var res = await _cutting1DService.CalculateCuttingAsync(dto.Details, dto.WorkpiecesLength);
             return Ok(res);
         }
@@ -86,8 +88,8 @@ namespace vega.Controllers
                 .Select(d => new Detail2D(d.Figures))
                 .ToList();
             var workpiece = new Workpiece() { Height = dto.Workpiece.Height, Width = dto.Workpiece.Width };
-            var res = await _cutting2DService.CalculateCuttingAsync(details, workpiece, dto.CuttingThickness);
             if (details.Max(d => d.Width) > workpiece.Width || details.Max(d => d.Height) > Math.Max(workpiece.Height, workpiece.Width)) return BadRequest("detail > workpiece");
+            var res = await _cutting2DService.CalculateCuttingAsync(details, workpiece, dto.CuttingThickness);
             return Ok(res);
         }
     }
