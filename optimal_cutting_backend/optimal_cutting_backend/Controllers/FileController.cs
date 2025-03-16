@@ -23,12 +23,16 @@ namespace vega.Controllers
         private readonly IDrawService _drawService;
         private readonly IDXFService _dxfService;
         private readonly VegaContext _db;
-        public FileController(ICSVService csvService, IDrawService drawService, IDXFService dxfService, VegaContext db)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public FileController(ICSVService csvService, IDrawService drawService,
+         IDXFService dxfService, VegaContext db, IHttpContextAccessor httpContext)
         {
             _csvService = csvService;
             _drawService = drawService;
             _dxfService = dxfService;
             _db = db;
+            _httpContextAccessor = httpContext;
         }
         /// <summary>
         /// 1D import csv file and formating him in json
@@ -59,7 +63,7 @@ namespace vega.Controllers
         {
             if (dto.Count == 0) return BadRequest("details is null");
             var file = _csvService.WriteCSV(dto);
-            return File(file, "application/octet-stream", "export.csv");
+            return File(file, "application/octet-stream", GetFileName(".csv"));
         }
 
         /// <summary>
@@ -95,7 +99,7 @@ namespace vega.Controllers
                 document.Close();
 
                 var pdfData = ms.ToArray();
-                return File(pdfData, "application/octet-stream", "export.pdf");
+                return File(pdfData, "application/octet-stream", GetFileName(".pdf"));
             }
         }
 
@@ -108,7 +112,7 @@ namespace vega.Controllers
         public async Task<IActionResult> ExportResultCSV([FromBody] Cutting1DResult dto)
         {
             var file = _csvService.WriteCSV(dto.Workpieces);
-            return File(file, "application/octet-stream", "result.csv");
+            return File(file, "application/octet-stream", GetFileName(".csv"));
 
         }
 
@@ -141,7 +145,7 @@ namespace vega.Controllers
         {
             if (dto.Count == 0) return BadRequest("details is null");
             var file = _csvService.WriteCSV(dto);
-            return File(file, "application/octet-stream", "export.csv");
+            return File(file, "application/octet-stream", GetFileName(".csv"));
         }
 
         /// <summary>
@@ -222,7 +226,7 @@ namespace vega.Controllers
                 document.Close();
 
                 var pdfData = ms.ToArray();
-                return File(pdfData, "application/octet-stream", "export.pdf");
+                return File(pdfData, "application/octet-stream", GetFileName(".pdf"));
             }
         }
 
@@ -278,7 +282,7 @@ namespace vega.Controllers
                 document.Close();
 
                 var pdfData = ms.ToArray();
-                return File(pdfData, "application/octet-stream", "export.pdf");
+                return File(pdfData, "application/octet-stream", GetFileName(".pdf"));
             }
         }
 
@@ -336,7 +340,7 @@ namespace vega.Controllers
         {
             if (dto.Count == 0) return BadRequest("details is null");
             var file = _csvService.WriteCSV(dto);
-            return File(file, "application/octet-stream", "export.csv");
+            return File(file, "application/octet-stream", GetFileName(".csv"));
         }
 
         //check file type
@@ -344,6 +348,15 @@ namespace vega.Controllers
         {
             var extension = Path.GetExtension(file.FileName);
             return allowedExtensions.Contains(extension);
+        }
+
+        private string GetFileName(string extension)
+        {
+            var time = DateTime.UtcNow.ToString("dd-MM-yyyyTHH-mm-ss");
+            var user = _httpContextAccessor?.HttpContext?.User;
+            var login = user.Claims.First(x => x.Type == "login").Value;
+
+            return $"{login} {time}{extension}";
         }
     }
 }

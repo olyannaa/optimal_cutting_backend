@@ -98,6 +98,20 @@ namespace vega.Controllers
         }
 
         /// <summary>
+        /// Delete Details by id
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("delete")]
+        public async Task<IActionResult> DeleteDetails([FromBody] DeleteDetailDTO dto)
+        {
+            var details = await _db.Filenames.Where(f => dto.DetailsIds.Contains(f.Id)).Include(f => f.Figures).ToListAsync();
+            _db.Filenames.RemoveRange(details);
+            await _db.SaveChangesAsync();
+            return Ok(new DeleteDetailResponse{ Message = "Детали удалены"});
+        }
+
+        /// <summary>
         /// Get all materials
         /// </summary>
         /// <returns></returns>

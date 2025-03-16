@@ -56,8 +56,8 @@ namespace vega.Controllers
                 for (var i = 0; i < detail.Count; i++)
                     details.Add(new Detail2D()
                     {
-                        Width = detail.Width,
-                        Height = detail.Height,
+                        Width = Math.Min(detail.Height, detail.Width),
+                        Height = Math.Max(detail.Height, detail.Width),
                         X = 0,
                         Y = 0,
                     });
@@ -67,7 +67,7 @@ namespace vega.Controllers
                 Height = dto.Workpiece.Height,
             };
             if (details.Max(d => d.Width) > workpiece.Width || details.Max(d => d.Height) > Math.Max(workpiece.Height, workpiece.Width)) return BadRequest("detail > workpiece");
-            var res = await _cutting2DService.CalculateCuttingAsync(details, workpiece, dto.CuttingThickness);
+            var res = await _cutting2DService.CalculateCuttingAsync(details, workpiece, dto.CuttingThickness, dto.Indent);
             return Ok(res);
         }
 
@@ -89,7 +89,7 @@ namespace vega.Controllers
                 .ToList();
             var workpiece = new Workpiece() { Height = dto.Workpiece.Height, Width = dto.Workpiece.Width };
             if (details.Max(d => d.Width) > workpiece.Width || details.Max(d => d.Height) > Math.Max(workpiece.Height, workpiece.Width)) return BadRequest("detail > workpiece");
-            var res = await _cutting2DService.CalculateCuttingAsync(details, workpiece, dto.CuttingThickness);
+            var res = await _cutting2DService.CalculateCuttingAsync(details, workpiece, dto.CuttingThickness, dto.Indent);
             return Ok(res);
         }
     }

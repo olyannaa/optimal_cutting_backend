@@ -9,9 +9,8 @@ namespace vega.Services
 {
     public class Cutting2DService : ICutting2DService
     {
-        //Отступы от краёв заготовки
-        public int Indent = 10;
-        public async Task<Cutting2DResult> CalculateCuttingAsync(List<Detail2D> details, Workpiece workpiece, float thickness)
+
+        public async Task<Cutting2DResult> CalculateCuttingAsync(List<Detail2D> details, Workpiece workpiece, float thickness, int indent)
         {
             if (details.Max(d => d.Width) > workpiece.Width || details.Max(d => d.Height) > Math.Max(workpiece.Height, workpiece.Width)) throw new Exception("detail > workpiece");
             details = details.OrderByDescending(d => d.Height * d.Width).ToList();
@@ -19,17 +18,17 @@ namespace vega.Services
                 (workpiece.Width, workpiece.Height) = (workpiece.Height, workpiece.Width);
             var workpieces = new List<Workpiece2D>();
             while(details.Count > 0)
-                workpieces.Add(CalculateCuttingForWorkpiece(details, workpiece, thickness));
+                workpieces.Add(CalculateCuttingForWorkpiece(details, workpiece, thickness, indent));
             
             var result = new Cutting2DResult() {Workpieces = workpieces, TotalPercentUsage = Math.Round(workpieces.Sum(w=>w.ProcentUsage) / workpieces.Count,2)};
 
             return result;
         }
-        public Workpiece2D CalculateCuttingForWorkpiece(List<Detail2D> details, Workpiece workpiece, float thickness)
+        public Workpiece2D CalculateCuttingForWorkpiece(List<Detail2D> details, Workpiece workpiece, float thickness, int indent)
         {
             var result = new List<Detail2D>();
-            workpiece.Width -= 2 * Indent;
-            workpiece.Height -= 2 * Indent;
+            workpiece.Width -= 2 * indent;
+            workpiece.Height -= 2 * indent;
             var arr = new byte[workpiece.Width][];
             arr = arr.Select(x => new byte[workpiece.Height]).ToArray();
             int currX = 0, currY = 0;
@@ -88,13 +87,13 @@ namespace vega.Services
 
             result = result.Select(x =>
             {
-                x.X += Indent;
-                x.Y += Indent;
+                x.X += indent;
+                x.Y += indent;
                 return x;
             }).ToList();
             var procentUsage = Math.Round((double)detailsSizes / (workpiece.Height * workpiece.Width), 2);
-            workpiece.Width += 2 * Indent;
-            workpiece.Height += 2 * Indent;
+            workpiece.Width += 2 * indent;
+            workpiece.Height += 2 * indent;
             var resultWorkpiece = new Workpiece2D { Details = result, Width = workpiece.Width, Height = workpiece.Height };
             resultWorkpiece.ProcentUsage = procentUsage;
             return resultWorkpiece;

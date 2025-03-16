@@ -46,6 +46,7 @@ namespace vega.Controllers
 
             var genericIdentity = new GenericIdentity(user.FullName);
             genericIdentity.AddClaim(new Claim(ClaimTypes.Sid, user.Id.ToString()));
+            genericIdentity.AddClaim(new Claim("login", user.Login));
             var identity = new ClaimsIdentity(genericIdentity);
             var tokens = _tokenManager.GetTokens(identity);
 

@@ -102,6 +102,7 @@ app.UseCors(builder =>
      builder.AllowAnyOrigin()
          .AllowAnyHeader()
          .AllowAnyMethod()
+         .WithExposedHeaders("Content-Disposition")
      );
 
 if (app.Environment.IsDevelopment())

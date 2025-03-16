@@ -80,6 +80,12 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:vega.Controllers.DetailController.DeleteDetails(vega.Controllers.DTO.DeleteDetailDTO)">
+            <summary>
+            Delete Details by id
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:vega.Controllers.DetailController.GetMaterials">
             <summary>
             Get all materials
