@@ -73,12 +73,13 @@ namespace vega.Services
             canvas.Clear();
 
             var detailPaint = new SKPaint();
-            var grayPaint = new SKPaint();
             var blackPaint = new SKPaint();
             var textPaint = new SKPaint();
             blackPaint.Color = SKColors.Black;
             textPaint.Color = SKColors.Black;
             textPaint.TextSize = 14;
+            textPaint.IsAntialias = true;
+
             foreach (var workpiece in result.Workpieces)
             {
                 canvas.Clear(SKColors.White);
@@ -86,18 +87,38 @@ namespace vega.Services
                 {
                     var key = detail.Width * detail.Height;
                     var rnd = new Random();
-                    if (!detailColorsDict.ContainsKey(key)) detailColorsDict[key] = Colors[rnd.Next(0, Colors.Count)];
+                    if (!detailColorsDict.ContainsKey(key))
+                        detailColorsDict[key] = Colors[rnd.Next(0, Colors.Count)];
                     detailPaint.Color = detailColorsDict[key];
-                    canvas.DrawRect(new SKRect(detail.X, detail.Y, detail.X + detail.Width, detail.Y + detail.Height), blackPaint);
-                    canvas.DrawRect(new SKRect(detail.X + 1, detail.Y + 1, detail.X + detail.Width - 1, detail.Y + detail.Height - 1),
-                        detailPaint);
-                    textPaint.TextSize = (Math.Max(12, detail.Width/10));
+
+
+                    var rect = new SKRect(detail.X, detail.Y, detail.X + detail.Width, detail.Y + detail.Height);
+                    canvas.DrawRect(rect, blackPaint);
+                    canvas.DrawRect(new SKRect(rect.Left + 1, rect.Top + 1, rect.Right - 1, rect.Bottom - 1), detailPaint);
+
+
+                    textPaint.TextSize = 36;
+
                     if (detail.Width >= 40 && detail.Height >= 20)
-                        canvas.DrawText($"{detail.Width}x{detail.Height}", detail.X + 2, detail.Y + textPaint.TextSize, textPaint);
+                    {
+                        var text = $"{detail.Width}x{detail.Height}";
+
+                        if (detail.Width < 60)
+                        {
+                            canvas.Save();
+                            canvas.RotateDegrees(-90, rect.MidX, rect.MidY);
+                            canvas.DrawText(text, rect.MidX - rect.Width / 2, rect.MidY, textPaint);
+                            canvas.Restore();
+                        }
+                        else
+                        {
+                            canvas.DrawText(text, detail.X + 2, detail.Y + textPaint.TextSize, textPaint);
+                        }
+                    }
                 }
                 images.Add(SKImage.FromBitmap(bitmap).Encode().ToArray());
             }
-            
+
             return images;
         }
 

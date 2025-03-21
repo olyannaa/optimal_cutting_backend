@@ -18,7 +18,11 @@ namespace vega.Services
                 (workpiece.Width, workpiece.Height) = (workpiece.Height, workpiece.Width);
             var workpieces = new List<Workpiece2D>();
             while(details.Count > 0)
+            {
+                details = details.OrderByDescending(d => d.Height * d.Width).ToList();
                 workpieces.Add(CalculateCuttingForWorkpiece(details, workpiece, thickness, indent));
+            }
+                
             
             var result = new Cutting2DResult() {Workpieces = workpieces, TotalPercentUsage = Math.Round(workpieces.Sum(w=>w.ProcentUsage) / workpieces.Count,2)};
 
@@ -50,15 +54,17 @@ namespace vega.Services
                     {
                         var leftDetail = DetailLeft(result, currX, currY, detail.Height);
                         var topDetail = DetailTop(result, currX, currY, detail.Width);
-                        if (leftDetail != null) 
+                        if (leftDetail != null)
                         {
-                            detail.X = (leftDetail.X + leftDetail.Width) + thickness;
-                            currX = (int) detail.X;
-                        }  
+                            detail.X = (float)Math.Round(leftDetail.X + leftDetail.Width + thickness);
+                            currX = (int)detail.X;
+                        }
                         else detail.X = currX;
 
-                        if (topDetail != null) detail.Y = (topDetail.Y + topDetail.Height) + thickness;
-                        else detail.Y = currY;
+                        if (topDetail != null)
+                            detail.Y = (float)Math.Round(topDetail.Y + topDetail.Height + thickness);
+                        else
+                            detail.Y = currY;
 
                         if (CanAddDetail(arr, detail, currX, currY))
                         {
@@ -69,6 +75,11 @@ namespace vega.Services
                             if (details.Count > 0)
                                 minSize = Math.Min(details.Min(d => d.Height), details.Min(d => d.Width));
                             detailNumber--;
+                        }
+                        else
+                        {
+                            detail.X = 0;
+                            detail.Y = 0;
                         }
                     }
                     else
@@ -108,9 +119,9 @@ namespace vega.Services
 
         public Detail2D DetailTop(List<Detail2D> details, int x, int y, int width)
         {
-            return details.Where(detail => detail.X + detail.Width > x && detail.X < x + width )
-                          .OrderBy(detail => y - detail.Y - detail.Height)
-                          .FirstOrDefault();
+            var det = details.Where(detail => detail.X + detail.Width > x && detail.X < x + width && detail.Y + detail.Height >= y)
+                          .OrderBy(detail => y - detail.Y - detail.Height);
+            return det.FirstOrDefault();
         }
 
         public Detail2D RotateDetail(Detail2D detail)
@@ -124,8 +135,8 @@ namespace vega.Services
         public bool CanAddDetail(byte[][] arr, Detail2D detail, int x, int y)
         {
             if (x < 0 || y < 0) return false;
-            if (x + detail.Width >= arr.Length) return false;
-            if (y + detail.Height >= arr[0].Length) return false;
+            if (x + detail.Width > arr.Length) return false;
+            if (y + detail.Height > arr[0].Length) return false;
             var z = 0;
             if (detail.X - x > 0 && detail.X > 0) z++;
             for (var i = z; i < detail.Width - 1; i++)
