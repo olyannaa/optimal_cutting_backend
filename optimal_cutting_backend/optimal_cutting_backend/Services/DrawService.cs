@@ -71,6 +71,8 @@ namespace vega.Services
             var bitmap = new SKBitmap(width, height);
             var canvas = new SKCanvas(bitmap);
             canvas.Clear();
+            canvas.Translate(0, height);
+            canvas.Scale(1, -1);
 
             var detailPaint = new SKPaint();
             var blackPaint = new SKPaint();
@@ -116,7 +118,9 @@ namespace vega.Services
                         }
                     }
                 }
-                images.Add(SKImage.FromBitmap(bitmap).Encode().ToArray());
+                var rotatedBitmap = RotateBitmap90(bitmap);
+                var flippedBitmap = FlipBitmapVertically(rotatedBitmap);
+                images.Add(SKImage.FromBitmap(flippedBitmap).Encode().ToArray());
             }
 
             return images;
@@ -136,8 +140,9 @@ namespace vega.Services
             var bitmap = new SKBitmap(width, height);
             var canvas = new SKCanvas(bitmap);
             
-
             canvas.Clear(SKColors.Black);
+            canvas.Translate(0, height);
+            canvas.Scale(1, -1);
             foreach (var figure in figures)
                 DrawFigure(figure, canvas, width, height, mainCenterX, mainCenterY);
 
@@ -169,9 +174,10 @@ namespace vega.Services
                     foreach (var figure in detail.Figures)
                         DrawFigure(figure, canvas, detail.Width, detail.Height, (int)center.X, (int)center.Y);
                 }
-                images.Add(SKImage.FromBitmap(bitmap).Encode().ToArray());
+                var rotatedBitmap = RotateBitmap90(bitmap);
+                var flippedBitmap = FlipBitmapVertically(rotatedBitmap);
+                images.Add(SKImage.FromBitmap(flippedBitmap).Encode().ToArray());
             }
-
             return images;
         }
 
@@ -275,6 +281,28 @@ namespace vega.Services
             var detailCenterY = (int)(((minY + maxY) / 2) - detailY);
 
             return new Point(detailCenterX, detailCenterY);
+        }
+        private SKBitmap FlipBitmapVertically(SKBitmap srcBitmap)
+        {
+            var flippedBitmap = new SKBitmap(srcBitmap.Width, srcBitmap.Height);
+            using (var surface = new SKCanvas(flippedBitmap))
+            {
+                surface.Translate(0, srcBitmap.Height);
+                surface.Scale(1, -1);
+                surface.DrawBitmap(srcBitmap, 0, 0);
+            }
+            return flippedBitmap;
+        }
+        private SKBitmap RotateBitmap90(SKBitmap srcBitmap)
+        {
+            var rotatedBitmap = new SKBitmap(srcBitmap.Height, srcBitmap.Width);
+            using (var surface = new SKCanvas(rotatedBitmap))
+            {
+                surface.Translate(0, rotatedBitmap.Height);
+                surface.RotateDegrees(-90);
+                surface.DrawBitmap(srcBitmap, 0, 0);
+            }
+            return rotatedBitmap;
         }
     }
 }

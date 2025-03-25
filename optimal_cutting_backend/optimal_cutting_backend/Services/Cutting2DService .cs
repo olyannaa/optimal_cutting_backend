@@ -14,7 +14,7 @@ namespace vega.Services
         {
             if (details.Max(d => d.Width) > workpiece.Width || details.Max(d => d.Height) > Math.Max(workpiece.Height, workpiece.Width)) throw new Exception("detail > workpiece");
             details = details.OrderByDescending(d => d.Height * d.Width).ToList();
-            if (workpiece.Height > workpiece.Width)
+            if (workpiece.Height < workpiece.Width)
                 (workpiece.Width, workpiece.Height) = (workpiece.Height, workpiece.Width);
             var workpieces = new List<Workpiece2D>();
             while(details.Count > 0)
