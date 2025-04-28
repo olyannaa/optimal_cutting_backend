@@ -5,7 +5,10 @@ using netDxf.Header;
 using netDxf.IO;
 using SkiaSharp;
 using System.Globalization;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using vega.Controllers.DTO;
 using vega.Migrations.DAL;
 using vega.Models;
@@ -15,6 +18,12 @@ namespace vega.Services
 {
     public class DXFService : IDXFService
     {
+        private readonly HttpClient _httpClient;
+
+        public DXFService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
         public async Task<List<byte[]>> Create2DDXFAsync(Cutting2DResult result)
         {
             var answer = new List<byte[]>();
@@ -107,34 +116,54 @@ namespace vega.Services
             return answer;
         }
 
-        public async Task<List<Figure>> GetDXFAsync(byte[] fileBytes)
+        public async Task<List<FigureDTO>> GetDXFAsync(byte[] fileBytes)
         {
-            var ans = new List<Figure>();
-            using var stream = new MemoryStream(fileBytes);
-            var dxf = DxfDocument.Load(stream);
-            foreach (var obj in dxf.Entities.All)
+            try
             {
-                if (obj is Line line)
-                    ans.Add(new Figure { TypeId = 1, Coordinates = $"{line.StartPoint.X}; {line.StartPoint.Y}; {line.EndPoint.X}; {line.EndPoint.Y}" });
-                if (obj is Circle circle)
-                    ans.Add(new Figure { TypeId = 2, Coordinates = $"{circle.Center.X}; {circle.Center.Y}; {circle.Radius}" });
-                if (obj is Arc arc)
-                    ans.Add(new Figure { TypeId = 3, Coordinates = $"{arc.Center.X}; {arc.Center.Y}; {arc.Radius}; {arc.StartAngle}; {arc.EndAngle}" });
-                if(obj is Spline spline)
+
+                if (fileBytes == null || fileBytes.Length == 0)
                 {
-                    var coordinates = new StringBuilder();
-                    foreach (var item in spline.ControlPoints)
-                        coordinates.Append($"{item.ToString()}/");
-                    ans.Add(new Figure { TypeId = 4, Coordinates = coordinates.ToString() });
+                    throw new ArgumentException("File bytes cannot be empty");
                 }
-                    
+
+                using var content = new MultipartFormDataContent();
+                var fileContent = new ByteArrayContent(fileBytes);
+                fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
+                content.Add(fileContent, "file", "drawing.dxf");
+
+                var response = await _httpClient.PostAsync("parse-dxf", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"DXF API error: {response.StatusCode}, {errorContent}");
+                    throw new Exception($"DXF parsing failed: {errorContent}");
+                }
+
+                var responseStream = await response.Content.ReadAsStreamAsync();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    AllowTrailingCommas = true
+                };
+
+                var result = await JsonSerializer.DeserializeAsync<List<FigureDTO>>(responseStream, options);
+
+                if (result == null || result.Count == 0)
+                {
+                    throw new Exception("No valid figures found in DXF file");
+                }
+
+                return result;
             }
-            foreach (var fig in ans)
+            catch (Exception ex)
             {
-                fig.Coordinates = fig.Coordinates.Replace(".", ",");
+                Console.WriteLine(ex.Message, "Error in GetDXFAsync");
+                throw new Exception("Failed to parse DXF", ex);
             }
-            return ans;
         }
+
+
         private Vector2 GetDetailCenter(List<Figure> figures, float detailX = 0, float detailY = 0)
         {
             var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));

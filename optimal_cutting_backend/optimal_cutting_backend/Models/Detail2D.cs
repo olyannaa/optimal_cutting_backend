@@ -79,8 +79,8 @@ namespace vega.Models
                 }
             }
 
-            this.Width = (int)(Math.Abs(minX) + maxX);
-            this.Height = (int)(Math.Abs(minY) + maxY);
+            this.Width = (int)(maxX - minX);
+            this.Height = (int)(maxY - minY);
         }
         
         public void Rotate() => (Width, Height) = (Height, Width);

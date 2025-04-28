@@ -63,38 +63,82 @@ namespace vega.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateDetail([FromForm] DetailDTO dto)
         {
-            var filename = _db.Filenames.FirstOrDefault(x => x.Designation == dto.Designation);
-            if (filename != null) return BadRequest("detail with this designation is found");
+            if (await _db.Filenames.AnyAsync(x => x.Designation == dto.Designation))
+                return BadRequest("Detail with this designation already exists");
 
-            var userId = Int32.Parse(_accessor.HttpContext.User.Claims.First(x => x.Type == ClaimTypes.Sid).Value);
+            if (dto.File == null || dto.File.Length == 0)
+                return BadRequest("File is empty");
 
-            var detail = new Filename
+            using var transaction = await _db.Database.BeginTransactionAsync();
+
+            try
             {
-                Name = dto.Name,
-                Designation = dto.Designation,
-                Thickness = dto.Thickness,
-                FileName = dto.Filename,
-                MaterialId = dto.MaterialId,
-                UserId = userId,
-            };
-            if (dto.File.Length == 0) return BadRequest("file is null");
-            await _db.Filenames.AddAsync(detail);
-            await _db.SaveChangesAsync();
+                byte[] fileBytes;
+                using (var stream = dto.File.OpenReadStream())
+                {
+                    fileBytes = new byte[dto.File.Length];
+                    await stream.ReadAsync(fileBytes, 0, (int)dto.File.Length);
+                }
 
-            using var fileStream = dto.File.OpenReadStream();
-            byte[] bytes = new byte[dto.File.Length];
-            fileStream.Read(bytes, 0, (int)dto.File.Length);
-            var details = await _dxfService.GetDXFAsync(bytes);
-            await _db.Figures.AddRangeAsync(details.Select(d => new Figure()
+                if (!IsValidDXF(fileBytes))
+                {
+                    throw new Exception("Invalid DXF file format");
+                }
+
+                
+                var detail = new Filename
+                {
+                    Name = dto.Name,
+                    Designation = dto.Designation,
+                    Thickness = dto.Thickness,
+                    FileName = dto.Filename,
+                    MaterialId = dto.MaterialId,
+                    UserId = Int32.Parse(_accessor.HttpContext.User.Claims.First(x => x.Type == ClaimTypes.Sid).Value)
+                };
+
+                await _db.Filenames.AddAsync(detail);
+                await _db.SaveChangesAsync();
+
+                
+                var figures = await _dxfService.GetDXFAsync(fileBytes);
+
+
+                var entities = figures.Select(f => new Figure
+                {
+                    Coordinates = f.Coordinates,
+                    TypeId = f.TypeId,
+                    FilenameId = detail.Id
+                }).ToList();
+
+                await _db.Figures.AddRangeAsync(entities);
+                await _db.SaveChangesAsync();
+
+                
+                var imageBytes = await _drawService.DrawDXFAsync(entities);
+
+                
+                await transaction.CommitAsync();
+
+                return File(imageBytes, "image/png");
+            }
+            catch (Exception ex)
             {
-                Coordinates = d.Coordinates,
-                TypeId = d.TypeId,
-                FilenameId = detail.Id,
-            }));
-            await _db.SaveChangesAsync();
+                await transaction.RollbackAsync();
+                return BadRequest($"Error processing DXF file: {ex.Message}");
+            }
+        }
 
-            var imageBytes = await _drawService.DrawDXFAsync(details);
-            return File(imageBytes, "image/png");
+        private bool IsValidDXF(byte[] fileBytes)
+        {
+            try
+            {
+                var text = System.Text.Encoding.ASCII.GetString(fileBytes, 0, Math.Min(100, fileBytes.Length));
+                return text.Contains("SECTION") && text.Contains("HEADER");
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>

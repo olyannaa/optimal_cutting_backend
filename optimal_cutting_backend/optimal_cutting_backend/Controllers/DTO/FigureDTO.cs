@@ -1,8 +1,12 @@
-﻿namespace vega.Controllers.DTO
+﻿using System.Text.Json.Serialization;
+
+namespace vega.Controllers.DTO
 {
     public class FigureDTO
     {
+        [JsonPropertyName("type")]
         public int TypeId { get; set; }
-        public string Coorditanes { get; set; }
+        [JsonPropertyName("coordinates")]
+        public string Coordinates { get; set; }
     }
 }

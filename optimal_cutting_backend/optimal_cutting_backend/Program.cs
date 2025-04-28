@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using vega.Migrations.EF;
@@ -94,7 +95,12 @@ builder.Services.AddScoped<ICSVService, CSVService>();
 builder.Services.AddScoped<ICutting1DService, Cutting1DService>();
 builder.Services.AddScoped<ICutting2DService, Cutting2DService>();
 builder.Services.AddScoped<IDrawService, DrawService>();
-builder.Services.AddSingleton<IDXFService, DXFService>();
+builder.Services.AddHttpClient<IDXFService, DXFService>(client =>
+{
+    client.BaseAddress = new Uri("http://127.0.0.1:8000/");
+    client.DefaultRequestHeaders.Accept.Add(
+        new MediaTypeWithQualityHeaderValue("application/json"));
+});
 
 var app = builder.Build();
 
