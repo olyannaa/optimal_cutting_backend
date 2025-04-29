@@ -1,14 +1,14 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 import ezdxf
-import io
-import uvicorn
+import tempfile
 import logging
 from typing import List, Dict
+from math import cos, sin, radians
 
 app = FastAPI()
 
-# Настройка логирования
+# Логирование
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -21,17 +21,14 @@ def format_coord(num: float) -> str:
         logger.warning(f"Ошибка форматирования координаты {num}: {str(e)}")
         return "0"
 
-import tempfile
-
 async def parse_dxf_file(file: UploadFile) -> List[Dict[str, object]]:
     try:
         logger.info(f"Начало обработки файла: {file.filename}")
-        
-        file_content = await file.read()
 
+        file_content = await file.read()
         if not file_content:
             raise ValueError("Получен пустой файл")
-        
+
         with tempfile.NamedTemporaryFile(delete=False, suffix=".dxf") as tmp:
             tmp.write(file_content)
             tmp_path = tmp.name
@@ -44,101 +41,149 @@ async def parse_dxf_file(file: UploadFile) -> List[Dict[str, object]]:
         finally:
             tmp.close()
 
+        # --- Определяем единицы измерения ---
+        units_code = doc.header.get('$INSUNITS', 0)
+        units_map = {
+            0: "Unspecified",
+            1: "Inches",
+            2: "Feet",
+            4: "Millimeters",
+            5: "Centimeters",
+            6: "Meters",
+        }
+        unit_multipliers = {
+            0: 1.0,
+            1: 25.4,
+            2: 304.8,
+            4: 1.0,
+            5: 10.0,
+            6: 1000.0,
+        }
+        units = units_map.get(units_code, "Unknown")
+        multiplier = unit_multipliers.get(units_code, 1.0)
+
+        logger.info(f"Единицы DXF: {units} (код {units_code}), множитель: {multiplier}")
 
         figures = []
+        all_x = []
+        all_y = []
 
-        # 1. Пытаемся взять объекты из ModelSpace
-        msp = doc.modelspace()
-        modelspace_entities = list(msp)
-        if modelspace_entities:
-            logger.info(f"Найдено {len(modelspace_entities)} объектов в ModelSpace")
-            for entity in modelspace_entities:
+        sources = [
+            list(doc.modelspace()),
+            *(list(layout) for layout in doc.layouts),
+            *(list(block) for block in doc.blocks if block.name not in ("*Model_Space", "*Paper_Space"))
+        ]
+
+        for source in sources:
+            for entity in source:
                 try:
-                    figure = process_entity(entity)
+                    figure, bounding_points = process_entity(entity, multiplier)
                     if figure:
                         figures.append(figure)
+
+                        # Сбор координат для расчёта размеров
+                        if figure['type'] in [1, 2]:
+                            coords = figure['coordinates'].split(';')
+                            for i in range(0, len(coords) - 1, 2):
+                                all_x.append(float(coords[i].replace(',', '.')))
+                                all_y.append(float(coords[i+1].replace(',', '.')))
+                        elif figure['type'] == 3:
+                            coords = figure['coordinates'].split(';')
+                            cx = float(coords[0].replace(',', '.'))
+                            cy = float(coords[1].replace(',', '.'))
+                            all_x.append(cx)
+                            all_y.append(cy)
+
+                            if bounding_points:
+                                all_x.append(bounding_points[0])
+                                all_y.append(bounding_points[1])
+                                all_x.append(bounding_points[2])
+                                all_y.append(bounding_points[3])
+                        elif figure['type'] == 4:
+                            points = figure['coordinates'].split('/')
+                            for point in points:
+                                parts = point.split(';')
+                                if len(parts) >= 2:
+                                    all_x.append(float(parts[0].replace(',', '.')))
+                                    all_y.append(float(parts[1].replace(',', '.')))
                 except Exception as e:
                     logger.warning(f"Ошибка обработки объекта: {str(e)}")
-                    continue
-
-        # 2. Если в ModelSpace ничего нет — смотрим в Layouts
-        if not figures:
-            logger.info("ModelSpace пустой, проверяем Layouts...")
-            for layout in doc.layouts:
-                layout_entities = list(layout)
-                if layout_entities:
-                    logger.info(f"Найдено {len(layout_entities)} объектов в Layout: {layout.name}")
-                    for entity in layout_entities:
-                        try:
-                            figure = process_entity(entity)
-                            if figure:
-                                figures.append(figure)
-                        except Exception as e:
-                            logger.warning(f"Ошибка обработки объекта в Layout: {str(e)}")
-                            continue
-
-        # 3. Если и в Layouts ничего нет — смотрим в Blocks
-        if not figures:
-            logger.info("Layouts пустые, проверяем Blocks...")
-            for block in doc.blocks:
-                block_entities = list(block)
-                if block_entities and block.name not in ("*Model_Space", "*Paper_Space"):
-                    logger.info(f"Найдено {len(block_entities)} объектов в Block: {block.name}")
-                    for entity in block_entities:
-                        try:
-                            figure = process_entity(entity)
-                            if figure:
-                                figures.append(figure)
-                        except Exception as e:
-                            logger.warning(f"Ошибка обработки объекта в Block: {str(e)}")
-                            continue
+            if figures:
+                break
 
         if not figures:
             raise ValueError("Не удалось извлечь ни одного объекта из DXF")
 
-        logger.info(f"Успешно обработано объектов: {len(figures)}")
+        if not all_x or not all_y:
+            raise ValueError("Нет координат для расчёта размеров детали")
+
+        min_x = min(all_x)
+        max_x = max(all_x)
+        min_y = min(all_y)
+        max_y = max(all_y)
+
+        width = round(max_x - min_x, 3)
+        height = round(max_y - min_y, 3)
+
+        logger.info(f"Габариты детали: ширина={width} мм, высота={height} мм")
+
         return figures
 
     except Exception as e:
         logger.error(f"Ошибка при обработке файла: {str(e)}")
         raise
 
-
-
-def process_entity(entity) -> Dict[str, object]:
-    """Обрабатывает отдельную сущность DXF"""
+def process_entity(entity, multiplier=1.0) -> (Dict[str, object], List[float]):
+    """Обрабатывает отдельную сущность DXF и возвращает фигуру и bounding points"""
     if not hasattr(entity, 'dxftype'):
-        return None
+        return None, None
 
     entity_type = entity.dxftype()
-    coords = []
+
+    def scale(num):
+        return float(num) * multiplier
 
     if entity_type == 'LINE':
         coords = [
-            format_coord(entity.dxf.start.x),
-            format_coord(entity.dxf.start.y),
-            format_coord(entity.dxf.end.x),
-            format_coord(entity.dxf.end.y)
+            format_coord(scale(entity.dxf.start.x)),
+            format_coord(scale(entity.dxf.start.y)),
+            format_coord(scale(entity.dxf.end.x)),
+            format_coord(scale(entity.dxf.end.y))
         ]
-        return {'type': 1, 'coordinates': ";".join(coords)}
+        return {'type': 1, 'coordinates': ";".join(coords)}, None
 
     elif entity_type == 'CIRCLE':
         coords = [
-            format_coord(entity.dxf.center.x),
-            format_coord(entity.dxf.center.y),
-            format_coord(entity.dxf.radius)
+            format_coord(scale(entity.dxf.center.x)),
+            format_coord(scale(entity.dxf.center.y)),
+            format_coord(scale(entity.dxf.radius))
         ]
-        return {'type': 2, 'coordinates': ";".join(coords)}
+        return {'type': 2, 'coordinates': ";".join(coords)}, None
 
     elif entity_type == 'ARC':
+        cx = scale(entity.dxf.center.x)
+        cy = scale(entity.dxf.center.y)
+        r = scale(entity.dxf.radius)
+        start_angle = entity.dxf.start_angle
+        end_angle = entity.dxf.end_angle
+
         coords = [
-            format_coord(entity.dxf.center.x),
-            format_coord(entity.dxf.center.y),
-            format_coord(entity.dxf.radius),
-            format_coord(entity.dxf.start_angle),
-            format_coord(entity.dxf.end_angle)
+            format_coord(cx),
+            format_coord(cy),
+            format_coord(r),
+            format_coord(start_angle),
+            format_coord(end_angle)
         ]
-        return {'type': 3, 'coordinates': ";".join(coords)}
+
+        start_rad = radians(start_angle)
+        end_rad = radians(end_angle)
+
+        start_x = cx + r * cos(start_rad)
+        start_y = cy + r * sin(start_rad)
+        end_x = cx + r * cos(end_rad)
+        end_y = cy + r * sin(end_rad)
+
+        return {'type': 3, 'coordinates': ";".join(coords)}, [start_x, start_y, end_x, end_y]
 
     elif entity_type in ['SPLINE', 'POLYLINE', 'LWPOLYLINE']:
         points = []
@@ -148,19 +193,19 @@ def process_entity(entity) -> Dict[str, object]:
             points = entity.points
 
         coords = [
-            f"{format_coord(p[0])};{format_coord(p[1])}"
+            f"{format_coord(scale(p[0]))};{format_coord(scale(p[1]))}"
             for p in points
             if len(p) >= 2
         ]
-        return {'type': 4, 'coordinates': "/".join(coords)}
+        return {'type': 4, 'coordinates': "/".join(coords)}, None
 
-    return None
+    return None, None
 
 @app.post("/parse-dxf")
 async def parse_dxf_endpoint(file: UploadFile = File(...)):
     try:
-        result = await parse_dxf_file(file)
-        return JSONResponse(content=result)
+        figures = await parse_dxf_file(file)
+        return JSONResponse(content=figures)
     except Exception as e:
         raise HTTPException(
             status_code=400,
@@ -168,6 +213,7 @@ async def parse_dxf_endpoint(file: UploadFile = File(...)):
         )
 
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run(
         app,
         host="127.0.0.1",

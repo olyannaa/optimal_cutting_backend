@@ -30,51 +30,64 @@ namespace vega.Models
             var minX = float.MaxValue;
             var maxY = float.MinValue;
             var minY = float.MaxValue;
+            var culture = new CultureInfo("ru-RU");
+
             foreach (var figure in Figures)
             {
                 figure.Coordinates = figure.Coordinates.Replace('.', ',');
-                var coorditanes = figure.Coordinates.Split(';');
-                if (figure.TypeId == 1) //line
+                var coords = figure.Coordinates.Split(';')
+                    .Select(s => float.Parse(s, culture))
+                    .ToList();
+
+                if (figure.TypeId == 1) // LINE
                 {
-                    var figureMaxX = Math.Max(
-                        float.Parse(coorditanes[0], new CultureInfo("ru-RU")),
-                        float.Parse(coorditanes[2], new CultureInfo("ru-RU")));
-                    var figureMinX = Math.Min(
-                        float.Parse(coorditanes[0], new CultureInfo("ru-RU")),
-                        float.Parse(coorditanes[2], new CultureInfo("ru-RU")));
-                    var figureMaxY = Math.Max(
-                        float.Parse(coorditanes[1], new CultureInfo("ru-RU")),
-                        float.Parse(coorditanes[3], new CultureInfo("ru-RU")));
-                    var figureMinY = Math.Min(
-                        float.Parse(coorditanes[1], new CultureInfo("ru-RU")),
-                        float.Parse(coorditanes[3], new CultureInfo("ru-RU")));
-                    maxX = Math.Max(maxX, figureMaxX);
-                    minX = Math.Min(minX, figureMinX);
-                    maxY = Math.Max(maxY, figureMaxY);
-                    minY = Math.Min(minY, figureMinY);
+                    maxX = Math.Max(maxX, Math.Max(coords[0], coords[2]));
+                    minX = Math.Min(minX, Math.Min(coords[0], coords[2]));
+                    maxY = Math.Max(maxY, Math.Max(coords[1], coords[3]));
+                    minY = Math.Min(minY, Math.Min(coords[1], coords[3]));
                 }
-                else if (figure.TypeId == 2 || figure.TypeId == 3) //circle and arc
+                else if (figure.TypeId == 2) // CIRCLE
                 {
-                    var centerX = float.Parse(coorditanes[0], new CultureInfo("ru-RU"));
-                    var centerY = float.Parse(coorditanes[1], new CultureInfo("ru-RU"));
-                    var radius = float.Parse(coorditanes[2], new CultureInfo("ru-RU"));
-                    maxX = Math.Max(centerX + radius, maxX);
-                    minX = Math.Min(centerX - radius, minX);
-                    maxY = Math.Max(centerY + radius, maxY);
-                    minY = Math.Min(centerY - radius, minY);
+                    var cx = coords[0];
+                    var cy = coords[1];
+                    var r = coords[2];
+                    maxX = Math.Max(maxX, cx + r);
+                    minX = Math.Min(minX, cx - r);
+                    maxY = Math.Max(maxY, cy + r);
+                    minY = Math.Min(minY, cy - r);
                 }
-                else if (figure.TypeId == 4) //spline
+                else if (figure.TypeId == 3) // ARC
                 {
-                    coorditanes = figure.Coordinates.Split('/');
-                    for (var i = 0; i < coorditanes.Length - 1; i++)
+                    float cx = coords[0];
+                    float cy = coords[1];
+                    float r = coords[2];
+                    float start = coords[3];
+                    float end = coords[4];
+
+                    var arcPoints = GetArcExtremePoints(cx, cy, r, start, end);
+                    foreach (var (x, y) in arcPoints)
                     {
-                        var point = coorditanes[i].Split(';');
-                        var pointX = float.Parse(point[0], new CultureInfo("ru-RU"));
-                        var pointY = float.Parse(point[1], new CultureInfo("ru-RU"));
-                        maxX = Math.Max(maxX, pointX);
-                        minX = Math.Min(minX, pointX);
-                        maxY = Math.Max(maxY, pointY);
-                        minY = Math.Min(minY, pointY);
+                        maxX = Math.Max(maxX, x);
+                        minX = Math.Min(minX, x);
+                        maxY = Math.Max(maxY, y);
+                        minY = Math.Min(minY, y);
+                    }
+                }
+                else if (figure.TypeId == 4) // SPLINE
+                {
+                    var points = figure.Coordinates.Split('/');
+                    foreach (var point in points)
+                    {
+                        var parts = point.Split(';');
+                        if (parts.Length >= 2)
+                        {
+                            var px = float.Parse(parts[0], culture);
+                            var py = float.Parse(parts[1], culture);
+                            maxX = Math.Max(maxX, px);
+                            minX = Math.Min(minX, px);
+                            maxY = Math.Max(maxY, py);
+                            minY = Math.Min(minY, py);
+                        }
                     }
                 }
             }
@@ -82,7 +95,43 @@ namespace vega.Models
             this.Width = (int)(maxX - minX);
             this.Height = (int)(maxY - minY);
         }
-        
+        private List<(float x, float y)> GetArcExtremePoints(float cx, float cy, float r, float startAngle, float endAngle)
+        {
+            List<(float x, float y)> points = new();
+
+            float Normalize(float angle) => (angle % 360 + 360) % 360;
+
+            bool IsAngleBetween(float angle, float start, float end)
+            {
+                angle = Normalize(angle);
+                start = Normalize(start);
+                end = Normalize(end);
+                if (start < end)
+                    return angle >= start && angle <= end;
+                return angle >= start || angle <= end;
+            }
+
+            points.Add(PolarToCartesian(cx, cy, r, startAngle));
+            points.Add(PolarToCartesian(cx, cy, r, endAngle));
+
+            foreach (var a in new[] { 0f, 90f, 180f, 270f })
+            {
+                if (IsAngleBetween(a, startAngle, endAngle))
+                {
+                    points.Add(PolarToCartesian(cx, cy, r, a));
+                }
+            }
+
+            return points;
+        }
+
+        private (float x, float y) PolarToCartesian(float cx, float cy, float r, float angleDeg)
+        {
+            double rad = angleDeg * Math.PI / 180.0;
+            return ((float)(cx + r * Math.Cos(rad)), (float)(cy + r * Math.Sin(rad)));
+        }
+
+
         public void Rotate() => (Width, Height) = (Height, Width);
     }
 }

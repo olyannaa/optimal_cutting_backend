@@ -1,5 +1,4 @@
-﻿
-using Org.BouncyCastle.Crypto.Prng;
+﻿using Org.BouncyCastle.Crypto.Prng;
 using vega.Controllers.DTO;
 using vega.Migrations.DAL;
 using vega.Models;
@@ -17,14 +16,14 @@ namespace vega.Services
             if (workpiece.Height < workpiece.Width)
                 (workpiece.Width, workpiece.Height) = (workpiece.Height, workpiece.Width);
             var workpieces = new List<Workpiece2D>();
-            while(details.Count > 0)
+            while (details.Count > 0)
             {
                 details = details.OrderByDescending(d => d.Height * d.Width).ToList();
                 workpieces.Add(CalculateCuttingForWorkpiece(details, workpiece, thickness, indent));
             }
-                
-            
-            var result = new Cutting2DResult() {Workpieces = workpieces, TotalPercentUsage = Math.Round(workpieces.Sum(w=>w.ProcentUsage) / workpieces.Count,2)};
+
+
+            var result = new Cutting2DResult() { Workpieces = workpieces, TotalPercentUsage = Math.Round(workpieces.Sum(w => w.ProcentUsage) / workpieces.Count, 2) };
 
             return result;
         }
@@ -38,7 +37,7 @@ namespace vega.Services
             int currX = 0, currY = 0;
             var minSize = Math.Min(details.Min(d => d.Height), details.Min(d => d.Width));
             var detailsSizes = 0;
-            while(details.Count > 0)
+            while (details.Count > 0)
             {
                 var detailNumber = 0;
                 if (currY + minSize >= workpiece.Height) break;

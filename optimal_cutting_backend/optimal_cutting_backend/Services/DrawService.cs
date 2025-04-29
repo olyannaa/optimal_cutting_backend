@@ -128,10 +128,58 @@ namespace vega.Services
 
         public async Task<byte[]> DrawDXFAsync(List<Figure> figures)
         {
-            var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
-            var maxY = figures.Max(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
-            var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
-            var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
+            var culture = new CultureInfo("ru-RU");
+            var allX = new List<float>();
+            var allY = new List<float>();
+
+            foreach (var figure in figures)
+            {
+                var coords = figure.Coordinates.Split(';').Select(s => float.Parse(s, culture)).ToList();
+
+                switch (figure.TypeId)
+                {
+                    case 1: // LINE
+                    case 2: // CIRCLE
+                        for (int i = 0; i < coords.Count - 1; i += 2)
+                        {
+                            allX.Add(coords[i]);
+                            allY.Add(coords[i + 1]);
+                        }
+                        break;
+
+                    case 3: // ARC
+                        float cx = coords[0];
+                        float cy = coords[1];
+                        float r = coords[2];
+                        float start = coords[3];
+                        float end = coords[4];
+
+                        var arcPoints = GetArcExtremePoints(cx, cy, r, start, end);
+                        allX.AddRange(arcPoints.Select(p => p.x));
+                        allY.AddRange(arcPoints.Select(p => p.y));
+                        break;
+
+                    case 4: // SPLINE / POLYLINE
+                        var points = figure.Coordinates.Split('/');
+                        foreach (var point in points)
+                        {
+                            var parts = point.Split(';');
+                            if (parts.Length >= 2)
+                            {
+                                allX.Add(float.Parse(parts[0], culture));
+                                allY.Add(float.Parse(parts[1], culture));
+                            }
+                        }
+                        break;
+                }
+            }
+
+            // 👉 Теперь всё по-честному
+            var minX = allX.Min();
+            var maxX = allX.Max();
+            var minY = allY.Min();
+            var maxY = allY.Max();
+
             var width = (int)((Math.Abs(minX) + maxX) * 1.2);
             var height = (int)((Math.Abs(minY) + maxY) * 1.2);
             var mainCenterX = (int)((minX + maxX) / 2);
@@ -139,10 +187,11 @@ namespace vega.Services
 
             var bitmap = new SKBitmap(width, height);
             var canvas = new SKCanvas(bitmap);
-            
+
             canvas.Clear(SKColors.Black);
             canvas.Translate(0, height);
             canvas.Scale(1, -1);
+
             foreach (var figure in figures)
                 DrawFigure(figure, canvas, width, height, mainCenterX, mainCenterY);
 
@@ -151,35 +200,98 @@ namespace vega.Services
             return image.Encode().ToArray();
         }
 
+        private List<(float x, float y)> GetArcExtremePoints(float cx, float cy, float r, float startAngle, float endAngle)
+        {
+            List<(float x, float y)> points = new();
+
+            float Normalize(float angle) => (angle % 360 + 360) % 360;
+
+            bool IsAngleBetween(float angle, float start, float end)
+            {
+                angle = Normalize(angle);
+                start = Normalize(start);
+                end = Normalize(end);
+                if (start < end)
+                    return angle >= start && angle <= end;
+                return angle >= start || angle <= end;
+            }
+
+            points.Add(PolarToCartesian(cx, cy, r, startAngle));
+            points.Add(PolarToCartesian(cx, cy, r, endAngle));
+
+            foreach (var a in new[] { 0f, 90f, 180f, 270f })
+            {
+                if (IsAngleBetween(a, startAngle, endAngle))
+                    points.Add(PolarToCartesian(cx, cy, r, a));
+            }
+
+            return points;
+        }
+
+        private (float x, float y) PolarToCartesian(float cx, float cy, float r, float angleDeg)
+        {
+            double rad = angleDeg * Math.PI / 180.0;
+            return ((float)(cx + r * Math.Cos(rad)), (float)(cy + r * Math.Sin(rad)));
+        }
+
+
+
+
         public async Task<List<byte[]>> DrawDXFCuttingAsync(Cutting2DResult result)
         {
-
             var images = new List<byte[]>();
-            var detailColorsDict = new Dictionary<int, SKColor>();
-
-            var width = result.Workpieces[0].Width;
-            var height = result.Workpieces[0].Height;
-
-            var bitmap = new SKBitmap(width, height);
-            var canvas = new SKCanvas(bitmap);
-            canvas.Clear();
 
             foreach (var workpiece in result.Workpieces)
             {
+                var width = workpiece.Width;
+                var height = workpiece.Height;
+
+                var bitmap = new SKBitmap(width, height);
+                var canvas = new SKCanvas(bitmap);
+
                 canvas.Clear(SKColors.Black);
+                canvas.Translate(0, height);
+                canvas.Scale(1, -1);
+
                 foreach (var detail in workpiece.Details)
                 {
-                    if (detail.Rotated) RotateFigures(detail.Figures);
-                    var center = GetDetailCenter(detail.Figures, detail.X, detail.Y);
-                    foreach (var figure in detail.Figures)
+                    var localFigures = new List<Figure>();
+
+                    if (detail.Rotated)
+                    {
+                        // Создаём копию фигур и поворачиваем только её
+                        foreach (var figure in detail.Figures)
+                        {
+                            var clonedFigure = new Figure
+                            {
+                                TypeId = figure.TypeId,
+                                Coordinates = figure.Coordinates
+                            };
+                            localFigures.Add(clonedFigure);
+                        }
+                        RotateFigures(localFigures);
+                    }
+                    else
+                    {
+                        // Просто копируем ссылки
+                        localFigures = detail.Figures;
+                    }
+
+                    var center = GetDetailCenter(localFigures, detail.X, detail.Y);
+
+                    foreach (var figure in localFigures)
                         DrawFigure(figure, canvas, detail.Width, detail.Height, (int)center.X, (int)center.Y);
                 }
+
                 var rotatedBitmap = RotateBitmap90(bitmap);
                 var flippedBitmap = FlipBitmapVertically(rotatedBitmap);
+
                 images.Add(SKImage.FromBitmap(flippedBitmap).Encode().ToArray());
             }
+
             return images;
         }
+
 
         private void DrawFigure(Figure figure, SKCanvas canvas, int width, int height, int detailCenterX, int detailCenterY, bool rotated = false)
         {
@@ -257,31 +369,110 @@ namespace vega.Services
 
         private void RotateFigures(List<Figure> figures)
         {
-            for(var i = 0; i < figures.Count; i++)
+            var culture = new CultureInfo("ru-RU");
+
+            foreach (var figure in figures)
             {
-                var coordinates = figures[i].Coordinates
-                                            .Split(';')
-                                            .Select(c => float.Parse(c, new CultureInfo("ru-RU")))
-                                            .ToList();
-                (coordinates[0], coordinates[1]) = (-coordinates[1], coordinates[0]);
-                if (figures[i].TypeId == 1) (coordinates[2], coordinates[3]) = (-coordinates[3], coordinates[2]);
-                if (figures[i].TypeId == 3) (coordinates[3], coordinates[4]) = (coordinates[3]+90, coordinates[4]+90);
-                figures[i].Coordinates = String.Join(';', coordinates).Replace(".", ","); // Culture fix
+                var coords = figure.Coordinates
+                                   .Split(';')
+                                   .Select(s => float.Parse(s, culture))
+                                   .ToList();
+
+                switch (figure.TypeId)
+                {
+                    case 1: // LINE
+                        (coords[0], coords[1]) = (-coords[1], coords[0]); // start point
+                        (coords[2], coords[3]) = (-coords[3], coords[2]); // end point
+                        break;
+
+                    case 2: // CIRCLE
+                        (coords[0], coords[1]) = (-coords[1], coords[0]); // center
+                        break;
+
+                    case 3: // ARC
+                        (coords[0], coords[1]) = (-coords[1], coords[0]); // center
+                        coords[3] += 90; // start angle
+                        coords[4] += 90; // end angle
+                        break;
+
+                    case 4: // SPLINE
+                        var points = figure.Coordinates.Split('/');
+                        var rotatedPoints = points.Select(p =>
+                        {
+                            var split = p.Split(';');
+                            if (split.Length < 2) return "";
+                            var x = float.Parse(split[0], culture);
+                            var y = float.Parse(split[1], culture);
+                            return $"-{y.ToString(culture)};{x.ToString(culture)}";
+                        });
+                        figure.Coordinates = string.Join("/", rotatedPoints);
+                        continue; // пропускаем default обновление
+                }
+
+                figure.Coordinates = string.Join(";", coords.Select(v => v.ToString(culture)));
             }
         }
 
+
         private Point GetDetailCenter(List<Figure> figures, float detailX = 0, float detailY = 0)
         {
-            var maxX = figures.Max(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
-            var maxY = figures.Max(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
-            var minX = figures.Min(f => float.Parse(f.Coordinates.Split(';')[0], new CultureInfo("ru-RU")));
-            var minY = figures.Min(f => float.Parse(f.Coordinates.Split(';')[1], new CultureInfo("ru-RU")));
+            var culture = new CultureInfo("ru-RU");
+            var allX = new List<float>();
+            var allY = new List<float>();
 
-            var detailCenterX = (int)(((minX + maxX) / 2) - detailX);
-            var detailCenterY = (int)(((minY + maxY) / 2) - detailY);
+            foreach (var figure in figures)
+            {
+                var coords = figure.Coordinates.Split(';').Select(s => float.Parse(s, culture)).ToList();
 
-            return new Point(detailCenterX, detailCenterY);
+                switch (figure.TypeId)
+                {
+                    case 1: // LINE
+                    case 2: // CIRCLE
+                        for (int i = 0; i < coords.Count - 1; i += 2)
+                        {
+                            allX.Add(coords[i]);
+                            allY.Add(coords[i + 1]);
+                        }
+                        break;
+
+                    case 3: // ARC
+                        float cx = coords[0];
+                        float cy = coords[1];
+                        float r = coords[2];
+                        float start = coords[3];
+                        float end = coords[4];
+
+                        var arcPoints = GetArcExtremePoints(cx, cy, r, start, end);
+                        allX.AddRange(arcPoints.Select(p => p.x));
+                        allY.AddRange(arcPoints.Select(p => p.y));
+                        break;
+
+                    case 4: // SPLINE
+                        var points = figure.Coordinates.Split('/');
+                        foreach (var point in points)
+                        {
+                            var parts = point.Split(';');
+                            if (parts.Length >= 2)
+                            {
+                                allX.Add(float.Parse(parts[0], culture));
+                                allY.Add(float.Parse(parts[1], culture));
+                            }
+                        }
+                        break;
+                }
+            }
+
+            var minX = allX.Min();
+            var maxX = allX.Max();
+            var minY = allY.Min();
+            var maxY = allY.Max();
+
+            var centerX = (minX + maxX) / 2;
+            var centerY = (minY + maxY) / 2;
+
+            return new Point((int)(centerX - detailX), (int)(centerY - detailY));
         }
+
         private SKBitmap FlipBitmapVertically(SKBitmap srcBitmap)
         {
             var flippedBitmap = new SKBitmap(srcBitmap.Width, srcBitmap.Height);

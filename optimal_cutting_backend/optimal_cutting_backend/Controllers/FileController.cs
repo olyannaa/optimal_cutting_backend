@@ -15,7 +15,7 @@ using vega.Services.Interfaces;
 namespace vega.Controllers
 {
     [Route("/api")]
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class FileController : Controller
     {
 
@@ -282,7 +282,7 @@ namespace vega.Controllers
                 document.Close();
 
                 var pdfData = ms.ToArray();
-                return File(pdfData, "application/octet-stream", "ллл.pdf");
+                return File(pdfData, "application/octet-stream", "Заготовки.pdf");
             }
         }
 
