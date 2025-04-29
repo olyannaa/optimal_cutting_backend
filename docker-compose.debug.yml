@@ -49,6 +49,15 @@ services:
     depends_on:
       - vega-redis
 
+  vega-fast:
+    container_name: vega-fast
+    build:
+      context: .
+      dockerfile: optimal_cutting_backend/python.Dockerfile
+    restart: always
+    depends_on:
+      - vega-asp
+
   vega-npm:
     container_name: vega-npm
     #image: finedandelion/vega-npm:0.3.1

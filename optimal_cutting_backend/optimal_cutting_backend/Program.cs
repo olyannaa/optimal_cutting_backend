@@ -97,7 +97,7 @@ builder.Services.AddScoped<ICutting2DService, Cutting2DService>();
 builder.Services.AddScoped<IDrawService, DrawService>();
 builder.Services.AddHttpClient<IDXFService, DXFService>(client =>
 {
-    client.BaseAddress = new Uri("http://127.0.0.1:8000/");
+    client.BaseAddress = new Uri("http://vega-fast:8000/");
     client.DefaultRequestHeaders.Accept.Add(
         new MediaTypeWithQualityHeaderValue("application/json"));
 });

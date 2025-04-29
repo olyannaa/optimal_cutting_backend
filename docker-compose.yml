@@ -45,12 +45,21 @@ services:
     depends_on:
       - vega-redis
 
+  vega-fast:
+    container_name: vega-fast
+    build:
+      context: .
+      dockerfile: optimal_cutting_backend/python.Dockerfile
+    restart: always
+    depends_on:
+      - vega-asp
+
   vega-npm:
     container_name: vega-npm
-    #image: finedandelion/vega-npm:0.3.1
-    build:
-      context: ./optimal_cutting_backend/optimal_cutting_frontend/
-      dockerfile: Dockerfile
+    image: finedandelion/vega-npm:0.3.1
+    #build:
+    #  context: ./optimal_cutting_backend/optimal_cutting_frontend/
+    #  dockerfile: Dockerfile
     working_dir: /var/www/front
     tty: true
     volumes:
@@ -63,8 +72,7 @@ services:
     command: 
       sh -c "
         npm i --force --include=optional --loglevel verbose
-        && npm run build
-        && npm run preview -- --host"
+        && npm run dev -- --host"
     restart: always
     depends_on:
       - vega-asp
