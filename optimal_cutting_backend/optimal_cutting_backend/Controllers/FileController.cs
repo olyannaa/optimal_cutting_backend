@@ -172,7 +172,7 @@ namespace vega.Controllers
 
                 }
                 ms.Position = 0;
-                return File(ms.ToArray(), "application/zip", "Заготовки PNG");
+                return File(ms.ToArray(), "application/zip", GetFileName(".zip"));
             }
         }
 
@@ -198,7 +198,7 @@ namespace vega.Controllers
                     }
                 }
                 ms.Position = 0;
-                return File(ms.ToArray(), "application/zip", "Заготовки DXF");
+                return File(ms.ToArray(), "application/zip", GetFileName(".zip"));
             }
         }
 
@@ -254,7 +254,7 @@ namespace vega.Controllers
 
                 }
                 ms.Position = 0;
-                return File(ms.ToArray(), "application/zip", "Заготовки PNG");
+                return File(ms.ToArray(), "application/zip", GetFileName(".zip"));
             }
         }
 
@@ -282,7 +282,7 @@ namespace vega.Controllers
                 document.Close();
 
                 var pdfData = ms.ToArray();
-                return File(pdfData, "application/octet-stream", "Заготовки.pdf");
+                return File(pdfData, "application/octet-stream", GetFileName(".pdf"));
             }
         }
 
@@ -308,7 +308,7 @@ namespace vega.Controllers
                     }
                 }
                 ms.Position = 0;
-                return File(ms.ToArray(), "application/zip", "Заготовки DXF");
+                return File(ms.ToArray(), "application/zip", GetFileName(".zip"));
             }
         }
         /// <summary>
