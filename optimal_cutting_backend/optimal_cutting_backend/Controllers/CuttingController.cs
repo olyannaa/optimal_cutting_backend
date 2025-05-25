@@ -56,6 +56,8 @@ namespace vega.Controllers
                 for (var i = 0; i < detail.Count; i++)
                     details.Add(new Detail2D()
                     {
+                        Width = detail.Width,
+                        Height = detail.Height,
                         X = 0,
                         Y = 0,
                     });
@@ -83,7 +85,7 @@ namespace vega.Controllers
             //Get details from DB and calculate sizes (width, height)
             var details = dto.DetailsId
                 .Select(d => _db.Filenames.Include(f => f.Figures).FirstOrDefault(f => f.Id == d))
-                .Select(d => new Detail2D(d.Figures))
+                .Select(d => new Detail2D (d.Figures, d.FileName))
                 .ToList();
             var workpiece = new Workpiece() { Height = dto.Workpiece.Height, Width = dto.Workpiece.Width };
             if (details.Max(d => d.Width) > workpiece.Width || details.Max(d => d.Height) > Math.Max(workpiece.Height, workpiece.Width)) return BadRequest("detail > workpiece");

@@ -10,5 +10,6 @@ namespace vega.Services.Interfaces
         public Task<byte[]> Draw1DCuttingAsync(Cutting1DResult result);
         public Task<List<byte[]>> Draw2DCuttingAsync(Cutting2DResult result);
         public Task<List<byte[]>> DrawDXFCuttingAsync(Cutting2DResult result);
+        public Task<List<byte[]>> DrawDXFCuttingForPDF(Cutting2DResult result);
     }
 }

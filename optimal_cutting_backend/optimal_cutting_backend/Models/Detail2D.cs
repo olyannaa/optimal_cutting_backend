@@ -9,14 +9,16 @@ namespace vega.Models
         public int Height { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
+        public string? Name { get; set; }
         public List<Figure> Figures { get; set; }
         public bool Rotated { get; set; } = false;
 
         public Detail2D() { }
 
-        public Detail2D(List<Figure> figures)
+        public Detail2D(List<Figure> figures, string? name = "")
         {
             Figures = figures;
+            Name = name;
             GetSize();
             if (Width > Height)
             {

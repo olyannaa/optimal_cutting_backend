@@ -266,7 +266,7 @@ namespace vega.Controllers
         [Route("dxf/export/result/pdf")]
         public async Task<IActionResult> ExportDxfPdf([FromBody] Cutting2DResult dto)
         {
-            var imagesBytes = await _drawService.DrawDXFCuttingAsync(dto);
+            var imagesBytes = await _drawService.DrawDXFCuttingForPDF(dto);
             using (var ms = new MemoryStream())
             {
                 var document = new Document();
@@ -282,7 +282,7 @@ namespace vega.Controllers
                 document.Close();
 
                 var pdfData = ms.ToArray();
-                return File(pdfData, "application/octet-stream", GetFileName(".pdf"));
+                return File(pdfData, "application/octet-stream", "asd.pdf");
             }
         }
 

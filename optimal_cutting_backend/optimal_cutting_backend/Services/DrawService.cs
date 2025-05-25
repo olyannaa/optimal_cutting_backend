@@ -292,6 +292,101 @@ namespace vega.Services
             return images;
         }
 
+        public async Task<List<byte[]>> DrawDXFCuttingForPDF(Cutting2DResult result)
+        {
+            var images = new List<byte[]>();
+
+            foreach (var workpiece in result.Workpieces)
+            {
+                var width = workpiece.Width;
+                var height = workpiece.Height;
+
+                var bitmap = new SKBitmap(width, height);
+                var canvas = new SKCanvas(bitmap);
+
+                canvas.Clear(SKColors.Black);
+                canvas.Translate(0, height);
+                canvas.Scale(1, -1);
+
+                foreach (var detail in workpiece.Details)
+                {
+                    var localFigures = new List<Figure>();
+
+                    if (detail.Rotated)
+                    {
+                        foreach (var figure in detail.Figures)
+                        {
+                            var clonedFigure = new Figure
+                            {
+                                TypeId = figure.TypeId,
+                                Coordinates = figure.Coordinates
+                            };
+                            localFigures.Add(clonedFigure);
+                        }
+                        RotateFigures(localFigures);
+                    }
+                    else
+                    {
+                        localFigures = detail.Figures;
+                    }
+
+                    var center = GetDetailCenter(localFigures, detail.X, detail.Y);
+
+                    foreach (var figure in localFigures)
+                        DrawFigure(figure, canvas, detail.Width, detail.Height, (int)center.X, (int)center.Y);
+
+                    // Добавление текста с именем детали
+                    DrawDetailName(canvas, detail, center, detail.Width, detail.Height, detail.Rotated);
+                }
+                var flippedBitmap = FlipBitmapVertically(bitmap);
+                images.Add(SKImage.FromBitmap(flippedBitmap).Encode().ToArray());
+            }
+
+            return images;
+        }
+
+        private void DrawDetailName(SKCanvas canvas, Detail2D detail, Point center, int width, int height, bool rotated)
+        {
+            if (string.IsNullOrEmpty(detail.Name)) return;
+
+            // Оптимальный размер шрифта (можно настроить)
+            float fontSize = Math.Min(width, height) / 15f;
+            if (fontSize < 8) fontSize = 8; // Минимальный размер
+
+            var textPaint = new SKPaint
+            {
+                Color = SKColors.White,
+                TextSize = fontSize,
+                IsAntialias = true,
+                TextAlign = SKTextAlign.Center,
+                Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal)
+            };
+
+            // Получаем границы текста для точного центрирования
+            SKRect textBounds = new SKRect();
+            textPaint.MeasureText(detail.Name, ref textBounds);
+
+            // Вычисляем позицию центра детали
+            float centerX = detail.X + detail.Width / 2;
+            float centerY = detail.Y + detail.Height / 2;
+
+            if (rotated)
+            {
+                canvas.Save();
+                // Сначала перемещаем в центр, затем поворачиваем, затем рисуем с учетом размера текста
+                canvas.Translate(centerX, centerY);
+                canvas.RotateDegrees(90);
+                canvas.DrawText(detail.Name, -textBounds.Width / 2, textBounds.Height / 2, textPaint);
+                canvas.Restore();
+            }
+            else
+            {
+                // Для неповернутого текста просто центрируем
+                canvas.DrawText(detail.Name, centerX, centerY + textBounds.Height / 2, textPaint);
+            }
+        }
+
+
 
         private void DrawFigure(Figure figure, SKCanvas canvas, int width, int height, int detailCenterX, int detailCenterY, bool rotated = false)
         {
