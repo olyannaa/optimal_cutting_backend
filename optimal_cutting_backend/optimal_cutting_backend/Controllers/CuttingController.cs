@@ -85,7 +85,7 @@ namespace vega.Controllers
             //Get details from DB and calculate sizes (width, height)
             var details = dto.DetailsId
                 .Select(d => _db.Filenames.Include(f => f.Figures).FirstOrDefault(f => f.Id == d))
-                .Select(d => new Detail2D (d.Figures, d.FileName))
+                .Select(d => new Detail2D (d.Figures, d.Designation))
                 .ToList();
             var workpiece = new Workpiece() { Height = dto.Workpiece.Height, Width = dto.Workpiece.Width };
             if (details.Max(d => d.Width) > workpiece.Width || details.Max(d => d.Height) > Math.Max(workpiece.Height, workpiece.Width)) return BadRequest("detail > workpiece");

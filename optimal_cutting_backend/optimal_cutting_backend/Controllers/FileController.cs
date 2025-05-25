@@ -282,7 +282,7 @@ namespace vega.Controllers
                 document.Close();
 
                 var pdfData = ms.ToArray();
-                return File(pdfData, "application/octet-stream", "asd.pdf");
+                return File(pdfData, "application/octet-stream", GetFileName(".pdf"));
             }
         }
 
